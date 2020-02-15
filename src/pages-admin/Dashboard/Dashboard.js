@@ -39,6 +39,7 @@ class Dashboard extends Component {
         userPassword: "",
         rememberMe: false,
         loading: false,
+        showConfirmDeleteModal: false,
         showUserDataModel: false,
         usersData: [1, 2, 3, 4, 5, 6, 7],
 
@@ -117,10 +118,11 @@ class Dashboard extends Component {
                                             <Button className={'option-btn'} onClick={() => {
                                                 this.setState({showUserDataModel: true});
                                             }}><FontAwesomeIcon icon={faEdit}/></Button>
-                                            <Button className={'option-btn delete'}><FontAwesomeIcon
+                                            <Button className={'option-btn delete'} onClick={() => {
+                                                this.setState({showConfirmDeleteModal: true});
+                                            }}><FontAwesomeIcon
                                                 icon={faTrash}/></Button>
-                                            <Button className={'option-btn detail'}><FontAwesomeIcon
-                                                icon={faChevronRight}/></Button>
+
                                         </td>
                                     </tr>
                                 )
@@ -131,9 +133,10 @@ class Dashboard extends Component {
                 </div>
 
 
-                <Modal centered={true} className={'userdata-edit-modal'} open={this.state.showUserDataModel} toggle={() => {
-                    this.setState({showUserDataModel: !this.state.showUserDataModel});
-                }}>
+                <Modal centered={true} className={'userdata-edit-modal'} open={this.state.showUserDataModel}
+                       toggle={() => {
+                           this.setState({showUserDataModel: !this.state.showUserDataModel});
+                       }}>
                     <ModalHeader>Edit User Data</ModalHeader>
                     <ModalBody>
                         <div className={'form-container'}>
@@ -312,14 +315,32 @@ class Dashboard extends Component {
                             </Container>
 
 
-
                         </div>
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button block className={'play-btn'}  onClick={() => {
+                        <Button  className={'play-btn'} onClick={() => {
                             this.setState({showUserDataModel: false});
-                        }}>Save Detail</Button>
+                        }} theme={'success'}>Save</Button>
+                        <Button theme={'dark'}  className={'play-btn'} onClick={() => {
+                            this.setState({showUserDataModel: false});
+                        }}>Cancel</Button>
+                    </ModalFooter>
+                </Modal>
+
+
+                <Modal open={this.state.showConfirmDeleteModal} toggle={() => {
+                    this.setState({showConfirmDeleteModal: false})
+                }}>
+                    <ModalHeader>Confirm!</ModalHeader>
+                    <ModalBody>Do you really want to remove this user data?</ModalBody>
+                    <ModalFooter>
+                        <Button theme={'danger'} onClick={() => {
+                            this.setState({showConfirmDeleteModal: false});
+                        }}>YES</Button>
+                        <Button theme={'dark'} onClick={() => {
+                            this.setState({showConfirmDeleteModal: false});
+                        }}>NO</Button>
                     </ModalFooter>
                 </Modal>
             </LoadingOverlay>
