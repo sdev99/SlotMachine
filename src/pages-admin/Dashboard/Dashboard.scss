@@ -56,4 +56,52 @@
     }
   }
 
+
+}
+
+.userdata-edit-modal {
+  .modal-body {
+    overflow: scroll;
+    height: 75vh;
+  }
+
+  .form-container {
+    background-color: rgba(255, 255, 255, 0.85);
+
+    .heading4 {
+      font-weight: bold;
+      font-size: 22px;
+      color: #555555;
+      text-align: left;
+      line-height: normal;
+      margin-bottom: 8px;
+    }
+
+    .option-form {
+
+    }
+
+    .input-form {
+      margin-top: 30px;
+
+      .input-label {
+        font-size: 18px;
+      }
+
+      .input-field {
+        margin-bottom: 10px;
+      }
+    }
+
+
+    .product-choose-form {
+
+    }
+  }
+
+  .play-btn {
+    background-color: #04111E;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
 }
