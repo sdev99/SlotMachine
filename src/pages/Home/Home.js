@@ -19,22 +19,17 @@ import {
 class Home extends Component {
     state = {
         loading: false,
+        affiliatedWithNapaStore: false,
+        anInstallerCustomer: false,
+
+        napaNewElectrical: false,
+        wilson: false,
+        premiumPlus: false,
+        premiumSteering: false,
+        powerSupport: false,
+        newSteering: false,
     };
 
-
-    componentWillReceiveProps(nextProps, nextContext) {
-        this.setState({
-            affiliatedWithNapaStore: false,
-            anInstallerCustomer: false,
-
-            napaNewElectrical: false,
-            wilson: false,
-            premiumPlus: false,
-            premiumSteering: false,
-            powerSupport: false,
-            newSteering: false,
-        });
-    }
 
     componentWillMount() {
 
