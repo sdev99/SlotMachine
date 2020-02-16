@@ -123,41 +123,74 @@ class Home extends Component {
                                 </Col>
                             </Row>
 
-                            <Row>
-                                <Col sm={12} md={4}>
-                                    <span className={'input-label'}>Store number</span>
-                                </Col>
-                                <Col sm={12} md={8}>
-                                    <FormInput className="input-field"/>
-                                </Col>
-                            </Row>
+                            {
+                                this.state.affiliatedWithNapaStore && (
+                                    <React.Fragment>
+                                        <Row>
+                                            <Col sm={12} md={4}>
+                                                <span className={'input-label'}>Store number</span>
+                                            </Col>
+                                            <Col sm={12} md={8}>
+                                                <FormInput className="input-field"/>
+                                            </Col>
+                                        </Row>
 
-                            <Row>
-                                <Col sm={12} md={4}>
-                                    <span className={'input-label'}>Servicing DC</span>
-                                </Col>
-                                <Col sm={12} md={8}>
-                                    <FormInput className="input-field"/>
-                                </Col>
-                            </Row>
+                                        <Row>
+                                            <Col sm={12} md={4}>
+                                                <span className={'input-label'}>Servicing DC</span>
+                                            </Col>
+                                            <Col sm={12} md={8}>
+                                                <FormInput className="input-field"/>
+                                            </Col>
+                                        </Row>
 
-                            <Row>
-                                <Col sm={12} md={4}>
-                                    <span className={'input-label'}>Store Name</span>
-                                </Col>
-                                <Col sm={12} md={8}>
-                                    <FormInput className="input-field"/>
-                                </Col>
-                            </Row>
+                                        <Row>
+                                            <Col sm={12} md={4}>
+                                                <span className={'input-label'}>Store Name</span>
+                                            </Col>
+                                            <Col sm={12} md={8}>
+                                                <FormInput className="input-field"/>
+                                            </Col>
+                                        </Row>
 
-                            <Row>
-                                <Col sm={12} md={4}>
-                                    <span className={'input-label'}>Store address</span>
-                                </Col>
-                                <Col sm={12} md={8}>
-                                    <FormInput className="input-field"/>
-                                </Col>
-                            </Row>
+                                        <Row>
+                                            <Col sm={12} md={4}>
+                                                <span className={'input-label'}>Store address</span>
+                                            </Col>
+                                            <Col sm={12} md={8}>
+                                                <FormInput className="input-field"/>
+                                            </Col>
+                                        </Row>
+                                    </React.Fragment>
+                                )
+                            }
+
+
+                            {
+                                this.state.anInstallerCustomer && (
+                                    <React.Fragment>
+                                        <Row>
+                                            <Col sm={12} md={4}>
+                                                <span className={'input-label'}>Business Name</span>
+                                            </Col>
+                                            <Col sm={12} md={8}>
+                                                <FormInput className="input-field"/>
+                                            </Col>
+                                        </Row>
+
+                                        <Row>
+                                            <Col sm={12} md={4}>
+                                                <span className={'input-label'}>Business Address</span>
+                                            </Col>
+                                            <Col sm={12} md={8}>
+                                                <FormInput className="input-field"/>
+                                            </Col>
+                                        </Row>
+                                    </React.Fragment>
+                                )
+                            }
+
+
                         </Container>
 
 

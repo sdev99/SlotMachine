@@ -56,6 +56,10 @@ class Spin extends Component {
     }
 
     componentDidMount() {
+
+    }
+
+    setUpSlots = () => {
         this.createSlots($('#ring1'));
         this.createSlots($('#ring2'));
         this.createSlots($('#ring3'));
@@ -153,7 +157,14 @@ class Spin extends Component {
                 <div className={'slot-machine-container'}>
                     {
                         (this.state.screenType == 'spin') && (
-                            <img className={'spin-bg-image'} src={'images/spinbackground.png'}/>
+                            <img
+                                onLoad={() => {
+                                    this.setState({isImageLoad: true}, () => {
+                                        this.setUpSlots();
+                                    });
+                                }}
+                                className={'spin-bg-image'}
+                                src={'images/spinbackground.png'}/>
                         )
                     }
                     {
@@ -167,11 +178,15 @@ class Spin extends Component {
                         )
                     }
 
-                    <div id="rotate">
-                        <div id="ring1" className="ring"></div>
-                        <div id="ring2" className="ring"></div>
-                        <div id="ring3" className="ring"></div>
-                    </div>
+                    {
+                        this.state.isImageLoad && (
+                            <div id="rotate">
+                                <div id="ring1" className="ring"></div>
+                                <div id="ring2" className="ring"></div>
+                                <div id="ring3" className="ring"></div>
+                            </div>
+                        )
+                    }
 
 
                     {
@@ -185,7 +200,7 @@ class Spin extends Component {
                 {
                     this.state.showVideo && (
                         <div className={'video-container'}>
-                            <video  className={'video-view'} autoPlay id={'trainingvideoview'} onEnded={() => {
+                            <video className={'video-view'} autoPlay id={'trainingvideoview'} onEnded={() => {
                                 this.setState({showVideo: false});
                             }}>
                                 <source src="videos/sample.mp4" type="video/mp4"/>
