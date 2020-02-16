@@ -157,28 +157,29 @@ class Spin extends Component {
         return (
             <div className="spin-page-container">
                 <div className={'slot-machine-container'}>
-                    {
-                        (this.state.screenType == 'spin') && (
-                            <img
-                                onLoad={() => {
-                                    this.setState({isImageLoad: true}, () => {
-                                        this.setUpSlots();
-                                    });
-                                }}
-                                className={'spin-bg-image'}
-                                src={'images/spinbackground.png'}/>
-                        )
-                    }
-                    {
-                        (this.state.screenType == 'spinagain' || this.state.screenType == 'spinagainlast') && (
-                            <img className={'spin-bg-image'} src={'images/spinagainbackground.png'}/>
-                        )
-                    }
-                    {
-                        (this.state.screenType == 'finalscreen') && (
-                            <img className={'spin-bg-image'} src={'images/finalscreen.png'}/>
-                        )
-                    }
+
+                    <img
+                        onLoad={() => {
+                            this.setState({isImageLoad: true}, () => {
+                                this.setUpSlots();
+                            });
+                        }}
+                        className={'spin-bg-image'}
+                        style={{opacity: (this.state.screenType == 'spin') ? 1 : 0}}
+                        src={'images/spinbackground.png'}/>
+
+                    <img
+                        className={'spin-bg-image'}
+                        src={'images/spinagainbackground.png'}
+                        style={{opacity: (this.state.screenType == 'spinagain' || this.state.screenType == 'spinagainlast') ? 1 : 0}}
+                    />
+
+                    <img
+                        className={'spin-bg-image'}
+                        src={'images/finalscreen.png'}
+                        style={{opacity: (this.state.screenType == 'finalscreen') ? 1 : 0}}
+                    />
+
 
                     {
                         this.state.isImageLoad && (
