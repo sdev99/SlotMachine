@@ -1,16 +1,27 @@
 {
-  "name": "slotmachine",
+  "name": "server",
   "version": "1.0.0",
-  "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
   "main": "index.js",
-  "dependencies": {
-    "concurrently": "^5.1.0"
-  },
-  "devDependencies": {},
   "scripts": {
-    "start": "concurrently \"cd server && nodemon server.js\" \"cd client && npm rebuild node-sass && npm start\""
+    "client-install": "npm install --prefix client",
+    "start": "node index.js",
+    "server": "nodemon index.js",
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix client  && npm run build --prefix client"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "concurrently": "^5.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "md5": "^2.2.1",
+    "mongoose": "^5.9.1",
+    "nodemon": "^2.0.2"
+  },
+  "devDependencies": {},
+  "description": ""
 }
