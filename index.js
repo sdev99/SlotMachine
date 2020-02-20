@@ -5,7 +5,7 @@ const app = express()
 const mongoose = require('mongoose')
 const MODELS = require('./api/models/apiModel')
 const path = require('path');
-const apiPort = process.env.PORT || 3000;
+const apiPort = process.env.PORT || 5000;
 
 // mongoose instance connection url connection
 mongoose.Promise = global.Promise;

@@ -113,7 +113,7 @@ exports.addUserData = function (req, res) {
 };
 
 exports.updateUserData = function (req, res) {
-    Users.findOne({
+    UserData.findOne({
         _id: req.body.id
     }, function (err, data) {
         // if (err)
@@ -124,11 +124,11 @@ exports.updateUserData = function (req, res) {
             var newValues = {$set: req.body};
             UserData.updateOne(query, newValues, function (err, newUserDataRes) {
                 if (newUserDataRes) {
-                    UserData.findOne({
-                        _id: req.body.id
-                    }, function (err, userData) {
-                        if (userData) {
-                            success(res, "User data updated successfully", userData);
+                    UserData.find({}, async function (err, list) {
+                        if (list) {
+                            success(res, "User Data updated successfully", list);
+                        } else {
+                            fail(res, err.message);
                         }
                     });
                 } else {
@@ -170,7 +170,13 @@ exports.deleteUserData = function (req, res) {
     if (req.body.id) {
         UserData.deleteOne({_id: req.body.id}, function (err, deleteUserDataRes) {
             if (deleteUserDataRes) {
-                success(res, "User Data deleted successfully", deleteUserDataRes);
+                UserData.find({}, async function (err, data) {
+                    if (data) {
+                        success(res, "User Data deleted successfully", data);
+                    } else {
+                        fail(res, err.message);
+                    }
+                });
             } else {
                 fail(res, err.message, err);
             }

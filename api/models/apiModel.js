@@ -28,7 +28,13 @@ var UserDataSchema = new Schema({
     store_address: {
         type: String,
     },
-    address: {
+    business_name: {
+        type: String,
+    },
+    business_address: {
+        type: String,
+    },
+    products_buying: {
         type: String,
     },
     Created_date: {

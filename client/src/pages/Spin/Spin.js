@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import BackgroundImage from '../../components/BackgroundImage/BackgroundImage';
 import "./Spin.scss";
-import {apiUrl} from "../../constants";
+import {apiUrl, napaProducts} from "../../constants";
 import axios from 'axios';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "shards-ui/dist/css/shards.min.css"
@@ -13,9 +13,11 @@ import {
     Container,
     Row,
     Col,
-    Button
+    Button,
+    Alert, CardBody
 } from "shards-react";
 import $ from "jquery";
+import LoadingOverlay from "react-loading-overlay";
 
 const SLOTS_PER_REEL = 12;
 // radius = Math.round( ( panelWidth / 2) / Math.tan( Math.PI / SLOTS_PER_REEL ) );
@@ -24,10 +26,19 @@ const REEL_RADIUS = 500;
 
 class Spin extends Component {
     state = {
-        loading: false,
-
         affiliatedWithNapaStore: false,
         anInstallerCustomer: false,
+
+        fullName: "",
+        emailAddress: "",
+
+        storeNumber: "",
+        servicingDC: "",
+        storeName: "",
+        storeAddress: "",
+
+        businessName: "",
+        businessAddress: "",
 
         napaNewElectrical: false,
         wilson: false,
@@ -35,6 +46,7 @@ class Spin extends Component {
         premiumSteering: false,
         powerSupport: false,
         newSteering: false,
+        formErrors: null,
 
         isShowForm: true,
 
@@ -151,324 +163,606 @@ class Spin extends Component {
 
     }
 
+    validateEmail(email) {
+        var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    }
+
+    submitUserData = () => {
+
+        const {affiliatedWithNapaStore, anInstallerCustomer, fullName, emailAddress} = this.state;
+        const {storeNumber, servicingDC, storeName, storeAddress} = this.state;
+        const {businessName, businessAddress} = this.state;
+        const {napaNewElectrical, wilson, premiumPlus, premiumSteering, powerSupport, newSteering} = this.state;
+
+
+        var errors = {};
+
+        if (!fullName) {
+            errors['name'] = "Full name is required";
+        }
+        if (!emailAddress) {
+            errors['email'] = "Email address is required";
+        } else if (!this.validateEmail(emailAddress)) {
+            errors['email'] = "Email address is not valid";
+        }
+
+        if (affiliatedWithNapaStore) {
+            if (!storeNumber) {
+                errors['store_number'] = "Store number is required";
+            }
+            if (!servicingDC) {
+                errors['servicing_dc'] = "Servicing DC is required";
+            }
+            if (!storeName) {
+                errors['store_name'] = "Store name is required";
+            }
+            if (!storeAddress) {
+                errors['store_address'] = "Store address is required";
+            }
+        } else if (anInstallerCustomer) {
+            if (!businessName) {
+                errors['business_name'] = "Business name is required";
+            }
+            if (!businessAddress) {
+                errors['business_address'] = "Business address is required";
+            }
+        } else {
+            errors['user_type'] = "Select who are you?";
+        }
+
+
+        if (Object.keys(errors).length == 0) {
+            let postData = {
+                user_type: affiliatedWithNapaStore ? 'affiliated_with_napa_store' : 'installer_customer',
+                name: fullName,
+                email: emailAddress
+            };
+            if (affiliatedWithNapaStore) {
+                postData['store_number'] = storeNumber;
+                postData['servicing_dc'] = servicingDC;
+                postData['store_name'] = storeName;
+                postData['store_address'] = storeAddress;
+            } else if (anInstallerCustomer) {
+                postData['business_name'] = businessName;
+                postData['business_address'] = businessAddress;
+            }
+
+            let products = [];
+            if (napaNewElectrical) {
+                products.push(napaProducts.napaNewElectrical);
+            }
+            if (wilson) {
+                products.push(napaProducts.wilson);
+            }
+            if (premiumPlus) {
+                products.push(napaProducts.premiumPlus);
+            }
+            if (premiumSteering) {
+                products.push(napaProducts.premiumSteering);
+            }
+            if (powerSupport) {
+                products.push(napaProducts.powerSupport);
+            }
+            if (newSteering) {
+                products.push(napaProducts.newSteering);
+            }
+
+            postData['products_buying'] = products.join("|");
+
+            const {dispatch} = this.props;
+            dispatch(actions.submitUserData(postData)).then(() => {
+                setTimeout(() => {
+                    const {dataAddingStatus} = this.props;
+                    if (dataAddingStatus === 1) {
+                        this.setState({
+                            isShowForm: false,
+                            screenType: 'spin',
+
+                            affiliatedWithNapaStore: false,
+                            anInstallerCustomer: false,
+
+                            fullName: "",
+                            emailAddress: "",
+
+                            storeNumber: "",
+                            servicingDC: "",
+                            storeName: "",
+                            storeAddress: "",
+
+                            businessName: "",
+                            businessAddress: "",
+
+                            napaNewElectrical: false,
+                            wilson: false,
+                            premiumPlus: false,
+                            premiumSteering: false,
+                            powerSupport: false,
+                            newSteering: false,
+                            formErrors: null,
+                        });
+                    }
+                }, 500);
+            });
+        } else {
+            this.setState({formErrors: errors});
+        }
+    }
 
     render() {
+        const {dataAddingStatus, dataAddingError} = this.props;
 
         return (
-            <div className="spin-page-container">
-                <div className={'slot-machine-container'}>
+            <LoadingOverlay
+                active={dataAddingStatus == -1}
+                spinner
+                text='Connecting....'
+            >
+                <div className="spin-page-container">
+                    <div className={'slot-machine-container'}>
 
-                    <img
-                        onLoad={() => {
-                            this.setState({isImageLoad: true}, () => {
-                                this.setUpSlots();
-                            });
-                        }}
-                        className={'spin-bg-image'}
-                        style={{opacity: (this.state.screenType == 'spin') ? 1 : 0}}
-                        src={'images/spinbackground.png'}/>
+                        <img
+                            onLoad={() => {
+                                this.setState({isImageLoad: true}, () => {
+                                    this.setUpSlots();
+                                });
+                            }}
+                            className={'spin-bg-image'}
+                            style={{opacity: (this.state.screenType == 'spin') ? 1 : 0}}
+                            src={'images/spinbackground.png'}/>
 
-                    <img
-                        className={'spin-bg-image'}
-                        src={'images/spinagainbackground.png'}
-                        style={{opacity: (this.state.screenType == 'spinagain' || this.state.screenType == 'spinagainlast') ? 1 : 0}}
-                    />
+                        <img
+                            className={'spin-bg-image'}
+                            src={'images/spinagainbackground.png'}
+                            style={{opacity: (this.state.screenType == 'spinagain' || this.state.screenType == 'spinagainlast') ? 1 : 0}}
+                        />
 
-                    <img
-                        className={'spin-bg-image'}
-                        src={'images/finalscreen.png'}
-                        style={{opacity: (this.state.screenType == 'finalscreen') ? 1 : 0}}
-                    />
+                        <img
+                            className={'spin-bg-image'}
+                            src={'images/finalscreen.png'}
+                            style={{opacity: (this.state.screenType == 'finalscreen') ? 1 : 0}}
+                        />
 
+
+                        {
+                            this.state.isImageLoad && (
+                                <div id="rotate">
+                                    <div id="ring1" className="ring"></div>
+                                    <div id="ring2" className="ring"></div>
+                                    <div id="ring3" className="ring"></div>
+                                </div>
+                            )
+                        }
+
+
+                        {
+                            !this.state.disableSpin && (
+                                <div className={'spin-btn'} onClick={this.spin}></div>
+                            )
+                        }
+
+                    </div>
 
                     {
-                        this.state.isImageLoad && (
-                            <div id="rotate">
-                                <div id="ring1" className="ring"></div>
-                                <div id="ring2" className="ring"></div>
-                                <div id="ring3" className="ring"></div>
+                        this.state.showVideo && (
+                            <div className={'video-container'}>
+                                <video className={'video-view'} autoPlay id={'trainingvideoview'} onEnded={() => {
+                                    this.setState({showVideo: false});
+                                }}>
+                                    <source src="videos/sample.mp4" type="video/mp4"/>
+                                </video>
                             </div>
                         )
                     }
 
 
                     {
-                        !this.state.disableSpin && (
-                            <div className={'spin-btn'} onClick={this.spin}></div>
+                        this.state.isShowForm && (
+                            <div className="container">
+                                <div className={'form-container'}>
+                                    <Container className={'heading-form'}>
+                                        <Row>
+                                            <Col>
+                                                <div className={'heading1'}>PRE-QUALIFY FOR THE</div>
+                                            </Col>
+                                        </Row>
+                                        <Row>
+                                            <Col>
+                                                <div className={'heading2'}>BIG RACE</div>
+                                            </Col>
+                                        </Row>
+                                        <Row>
+                                            <Col>
+                                                <h4 className={'heading3'}>
+                                                    To begin, please answer a few simple questions:
+                                                </h4>
+                                            </Col>
+                                        </Row>
+
+                                    </Container>
+                                    <Container className={'option-form'}>
+                                        <Row>
+                                            <Col>
+                                                <div className={'heading4'}>
+                                                    ARE YOU?
+                                                </div>
+                                            </Col>
+                                        </Row>
+
+                                        <Row>
+                                            <Col sm={12} md={6}>
+                                                <FormCheckbox
+                                                    checked={this.state.affiliatedWithNapaStore}
+                                                    onChange={e => {
+                                                        this.setState({
+                                                            affiliatedWithNapaStore: true,
+                                                            anInstallerCustomer: false
+                                                        });
+                                                    }}
+                                                >affiliated with a NAPA store</FormCheckbox>
+                                            </Col>
+                                            <Col sm={12} md={6}>
+                                                <FormCheckbox
+                                                    checked={this.state.anInstallerCustomer}
+                                                    onChange={e => {
+                                                        this.setState({
+                                                            affiliatedWithNapaStore: false,
+                                                            anInstallerCustomer: true
+                                                        });
+                                                    }}
+                                                >
+                                                    an installer customer
+                                                </FormCheckbox>
+                                            </Col>
+                                        </Row>
+
+                                        {
+                                            (this.state.formErrors && this.state.formErrors['user_type']) && (
+                                                <Row>
+                                                    <Col sm={12}>
+                                                        <div className={'input-error'}>
+                                                            {this.state.formErrors['user_type']}
+                                                        </div>
+                                                    </Col>
+                                                </Row>
+                                            )
+                                        }
+
+                                    </Container>
+
+
+                                    <Container className={'input-form'}>
+                                        <Row>
+                                            <Col sm={12} md={4}>
+                                                <span className={'input-label'}>Full Name</span>
+                                            </Col>
+                                            <Col sm={12} md={8}>
+                                                <FormInput
+                                                    className="input-field"
+                                                    value={this.state.fullName}
+                                                    onChange={(e) => this.setState({fullName: e.target.value})}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {
+                                            (this.state.formErrors && this.state.formErrors['name']) && (
+                                                <Row>
+                                                    <Col sm={12} md={4}></Col>
+                                                    <Col sm={12} md={8}>
+                                                        <div className={'input-error'}>
+                                                            {this.state.formErrors['name']}
+                                                        </div>
+                                                    </Col>
+                                                </Row>
+                                            )
+                                        }
+
+                                        <Row>
+                                            <Col sm={12} md={4}>
+                                                <span className={'input-label'}>Email address</span>
+                                            </Col>
+                                            <Col sm={12} md={8}>
+                                                <FormInput
+                                                    className="input-field"
+                                                    type={"email"}
+                                                    value={this.state.emailAddress}
+                                                    onChange={(e) => this.setState({emailAddress: e.target.value})}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {
+                                            (this.state.formErrors && this.state.formErrors['email']) && (
+                                                <Row>
+                                                    <Col sm={12} md={4}></Col>
+                                                    <Col sm={12} md={8}>
+                                                        <div className={'input-error'}>
+                                                            {this.state.formErrors['email']}
+                                                        </div>
+                                                    </Col>
+                                                </Row>
+                                            )
+                                        }
+
+                                        {
+                                            this.state.affiliatedWithNapaStore && (
+                                                <React.Fragment>
+                                                    <Row>
+                                                        <Col sm={12} md={4}>
+                                                            <span className={'input-label'}>Store number</span>
+                                                        </Col>
+                                                        <Col sm={12} md={8}>
+                                                            <FormInput
+                                                                className="input-field"
+                                                                value={this.state.storeNumber}
+                                                                onChange={(e) => this.setState({storeNumber: e.target.value})}
+                                                            />
+                                                        </Col>
+                                                    </Row>
+                                                    {
+                                                        (this.state.formErrors && this.state.formErrors['store_number']) && (
+                                                            <Row>
+                                                                <Col sm={12} md={4}></Col>
+                                                                <Col sm={12} md={8}>
+                                                                    <div className={'input-error'}>
+                                                                        {this.state.formErrors['store_number']}
+                                                                    </div>
+                                                                </Col>
+                                                            </Row>
+                                                        )
+                                                    }
+
+
+                                                    <Row>
+                                                        <Col sm={12} md={4}>
+                                                            <span className={'input-label'}>Servicing DC</span>
+                                                        </Col>
+                                                        <Col sm={12} md={8}>
+                                                            <FormInput
+                                                                className="input-field"
+                                                                value={this.state.servicingDC}
+                                                                onChange={(e) => this.setState({servicingDC: e.target.value})}
+                                                            />
+                                                        </Col>
+                                                    </Row>
+                                                    {
+                                                        (this.state.formErrors && this.state.formErrors['servicing_dc']) && (
+                                                            <Row>
+                                                                <Col sm={12} md={4}></Col>
+                                                                <Col sm={12} md={8}>
+                                                                    <div className={'input-error'}>
+                                                                        {this.state.formErrors['servicing_dc']}
+                                                                    </div>
+                                                                </Col>
+                                                            </Row>
+                                                        )
+                                                    }
+
+                                                    <Row>
+                                                        <Col sm={12} md={4}>
+                                                            <span className={'input-label'}>Store Name</span>
+                                                        </Col>
+                                                        <Col sm={12} md={8}>
+                                                            <FormInput
+                                                                className="input-field"
+                                                                value={this.state.storeName}
+                                                                onChange={(e) => this.setState({storeName: e.target.value})}
+                                                            />
+                                                        </Col>
+                                                    </Row>
+                                                    {
+                                                        (this.state.formErrors && this.state.formErrors['store_name']) && (
+                                                            <Row>
+                                                                <Col sm={12} md={4}></Col>
+                                                                <Col sm={12} md={8}>
+                                                                    <div className={'input-error'}>
+                                                                        {this.state.formErrors['store_name']}
+                                                                    </div>
+                                                                </Col>
+                                                            </Row>
+                                                        )
+                                                    }
+
+                                                    <Row>
+                                                        <Col sm={12} md={4}>
+                                                            <span className={'input-label'}>Store address</span>
+                                                        </Col>
+                                                        <Col sm={12} md={8}>
+                                                            <FormInput
+                                                                className="input-field"
+                                                                value={this.state.storeAddress}
+                                                                onChange={(e) => this.setState({storeAddress: e.target.value})}
+                                                            />
+                                                        </Col>
+                                                    </Row>
+                                                    {
+                                                        (this.state.formErrors && this.state.formErrors['store_address']) && (
+                                                            <Row>
+                                                                <Col sm={12} md={4}></Col>
+                                                                <Col sm={12} md={8}>
+                                                                    <div className={'input-error'}>
+                                                                        {this.state.formErrors['store_address']}
+                                                                    </div>
+                                                                </Col>
+                                                            </Row>
+                                                        )
+                                                    }
+                                                </React.Fragment>
+                                            )
+                                        }
+
+
+                                        {
+                                            this.state.anInstallerCustomer && (
+                                                <React.Fragment>
+                                                    <Row>
+                                                        <Col sm={12} md={4}>
+                                                            <span className={'input-label'}>Business Name</span>
+                                                        </Col>
+                                                        <Col sm={12} md={8}>
+                                                            <FormInput
+                                                                className="input-field"
+                                                                value={this.state.businessName}
+                                                                onChange={(e) => this.setState({businessName: e.target.value})}
+                                                            />
+                                                        </Col>
+                                                    </Row>
+                                                    {
+                                                        (this.state.formErrors && this.state.formErrors['business_name']) && (
+                                                            <Row>
+                                                                <Col sm={12} md={4}></Col>
+                                                                <Col sm={12} md={8}>
+                                                                    <div className={'input-error'}>
+                                                                        {this.state.formErrors['business_name']}
+                                                                    </div>
+                                                                </Col>
+                                                            </Row>
+                                                        )
+                                                    }
+
+                                                    <Row>
+                                                        <Col sm={12} md={4}>
+                                                            <span className={'input-label'}>Business Address</span>
+                                                        </Col>
+                                                        <Col sm={12} md={8}>
+                                                            <FormInput
+                                                                className="input-field"
+                                                                value={this.state.businessAddress}
+                                                                onChange={(e) => this.setState({businessAddress: e.target.value})}
+                                                            />
+                                                        </Col>
+                                                    </Row>
+                                                    {
+                                                        (this.state.formErrors && this.state.formErrors['business_address']) && (
+                                                            <Row>
+                                                                <Col sm={12} md={4}></Col>
+                                                                <Col sm={12} md={8}>
+                                                                    <div className={'input-error'}>
+                                                                        {this.state.formErrors['business_address']}
+                                                                    </div>
+                                                                </Col>
+                                                            </Row>
+                                                        )
+                                                    }
+                                                </React.Fragment>
+                                            )
+                                        }
+
+
+                                    </Container>
+
+
+                                    <Container className={'product-choose-form'}>
+                                        <Row>
+                                            <Col>
+                                                <div className={'heading4'}>
+                                                    WHAT PRODUCTS ARE YOU CURRENTLY BUYING FROM NAPA?
+                                                </div>
+                                            </Col>
+                                        </Row>
+
+                                        <Row>
+                                            <Col sm={12} md={6}>
+                                                <FormCheckbox
+                                                    checked={this.state.napaNewElectrical}
+                                                    onChange={e => {
+                                                        this.setState({napaNewElectrical: !this.state.napaNewElectrical});
+                                                    }}
+                                                >
+                                                    {napaProducts.napaNewElectrical}
+                                                </FormCheckbox>
+                                            </Col>
+                                            <Col sm={12} md={6}>
+                                                <FormCheckbox
+                                                    checked={this.state.wilson}
+                                                    onChange={e => {
+                                                        this.setState({wilson: !this.state.wilson});
+                                                    }}
+                                                >
+                                                    {napaProducts.wilson}
+                                                </FormCheckbox>
+                                            </Col>
+                                        </Row>
+
+                                        <Row>
+                                            <Col sm={12} md={6}>
+                                                <FormCheckbox
+                                                    checked={this.state.premiumPlus}
+                                                    onChange={e => {
+                                                        this.setState({premiumPlus: !this.state.premiumPlus});
+                                                    }}
+                                                >
+                                                    {napaProducts.premiumPlus}
+                                                </FormCheckbox>
+                                            </Col>
+                                            <Col sm={12} md={6}>
+                                                <FormCheckbox
+                                                    checked={this.state.premiumSteering}
+                                                    onChange={e => {
+                                                        this.setState({premiumSteering: !this.state.premiumSteering});
+                                                    }}
+                                                >
+                                                    {napaProducts.premiumSteering}
+                                                </FormCheckbox>
+                                            </Col>
+                                        </Row>
+
+                                        <Row>
+                                            <Col sm={12} md={6}>
+                                                <FormCheckbox
+                                                    checked={this.state.powerSupport}
+                                                    onChange={e => {
+                                                        this.setState({powerSupport: !this.state.powerSupport});
+                                                    }}
+                                                >
+                                                    {napaProducts.powerSupport}
+                                                </FormCheckbox>
+                                            </Col>
+                                            <Col sm={12} md={6}>
+                                                <FormCheckbox
+                                                    checked={this.state.newSteering}
+                                                    onChange={e => {
+                                                        this.setState({newSteering: !this.state.newSteering});
+                                                    }}
+                                                >
+                                                    {napaProducts.newSteering}
+                                                </FormCheckbox>
+                                            </Col>
+                                        </Row>
+
+                                    </Container>
+
+                                    {
+                                        dataAddingStatus == 0 && (
+                                            <Alert theme="danger">{dataAddingError}</Alert>
+                                        )
+                                    }
+
+                                    <Container className={'btn-view'}>
+                                        <Row>
+                                            <Col>
+                                                <Button className={'play-btn'} pill onClick={() => {
+                                                    this.submitUserData();
+                                                }}>Let's Play! >></Button>
+                                            </Col>
+                                        </Row>
+                                    </Container>
+
+                                </div>
+                            </div>
                         )
                     }
 
                 </div>
-
-                {
-                    this.state.showVideo && (
-                        <div className={'video-container'}>
-                            <video className={'video-view'} autoPlay id={'trainingvideoview'} onEnded={() => {
-                                this.setState({showVideo: false});
-                            }}>
-                                <source src="videos/sample.mp4" type="video/mp4"/>
-                            </video>
-                        </div>
-                    )
-                }
-
-
-                {
-                    this.state.isShowForm && (
-                        <div className="container">
-                            <div className={'form-container'}>
-                                <Container className={'heading-form'}>
-                                    <Row>
-                                        <Col>
-                                            <div className={'heading1'}>PRE-QUALIFY FOR THE</div>
-                                        </Col>
-                                    </Row>
-                                    <Row>
-                                        <Col>
-                                            <div className={'heading2'}>BIG RACE</div>
-                                        </Col>
-                                    </Row>
-                                    <Row>
-                                        <Col>
-                                            <h4 className={'heading3'}>
-                                                To begin, please answer a few simple questions:
-                                            </h4>
-                                        </Col>
-                                    </Row>
-
-                                </Container>
-                                <Container className={'option-form'}>
-                                    <Row>
-                                        <Col>
-                                            <div className={'heading4'}>
-                                                ARE YOU?
-                                            </div>
-                                        </Col>
-                                    </Row>
-
-                                    <Row>
-                                        <Col sm={12} md={6}>
-                                            <FormCheckbox
-                                                checked={this.state.affiliatedWithNapaStore}
-                                                onChange={e => {
-                                                    this.setState({
-                                                        affiliatedWithNapaStore: true,
-                                                        anInstallerCustomer: false
-                                                    });
-                                                }}
-                                            >affiliated with a NAPA store</FormCheckbox>
-                                        </Col>
-                                        <Col sm={12} md={6}>
-                                            <FormCheckbox
-                                                checked={this.state.anInstallerCustomer}
-                                                onChange={e => {
-                                                    this.setState({
-                                                        affiliatedWithNapaStore: false,
-                                                        anInstallerCustomer: true
-                                                    });
-                                                }}
-                                            >
-                                                an installer customer
-                                            </FormCheckbox>
-                                        </Col>
-                                    </Row>
-                                </Container>
-
-                                <Container className={'input-form'}>
-                                    <Row>
-                                        <Col sm={12} md={4}>
-                                            <span className={'input-label'}>Full Name</span>
-                                        </Col>
-                                        <Col sm={12} md={8}>
-                                            <FormInput className="input-field"/>
-                                        </Col>
-                                    </Row>
-
-                                    <Row>
-                                        <Col sm={12} md={4}>
-                                            <span className={'input-label'}>Email address</span>
-                                        </Col>
-                                        <Col sm={12} md={8}>
-                                            <FormInput className="input-field"/>
-                                        </Col>
-                                    </Row>
-
-                                    {
-                                        this.state.affiliatedWithNapaStore && (
-                                            <React.Fragment>
-                                                <Row>
-                                                    <Col sm={12} md={4}>
-                                                        <span className={'input-label'}>Store number</span>
-                                                    </Col>
-                                                    <Col sm={12} md={8}>
-                                                        <FormInput className="input-field"/>
-                                                    </Col>
-                                                </Row>
-
-                                                <Row>
-                                                    <Col sm={12} md={4}>
-                                                        <span className={'input-label'}>Servicing DC</span>
-                                                    </Col>
-                                                    <Col sm={12} md={8}>
-                                                        <FormInput className="input-field"/>
-                                                    </Col>
-                                                </Row>
-
-                                                <Row>
-                                                    <Col sm={12} md={4}>
-                                                        <span className={'input-label'}>Store Name</span>
-                                                    </Col>
-                                                    <Col sm={12} md={8}>
-                                                        <FormInput className="input-field"/>
-                                                    </Col>
-                                                </Row>
-
-                                                <Row>
-                                                    <Col sm={12} md={4}>
-                                                        <span className={'input-label'}>Store address</span>
-                                                    </Col>
-                                                    <Col sm={12} md={8}>
-                                                        <FormInput className="input-field"/>
-                                                    </Col>
-                                                </Row>
-                                            </React.Fragment>
-                                        )
-                                    }
-
-
-                                    {
-                                        this.state.anInstallerCustomer && (
-                                            <React.Fragment>
-                                                <Row>
-                                                    <Col sm={12} md={4}>
-                                                        <span className={'input-label'}>Business Name</span>
-                                                    </Col>
-                                                    <Col sm={12} md={8}>
-                                                        <FormInput className="input-field"/>
-                                                    </Col>
-                                                </Row>
-
-                                                <Row>
-                                                    <Col sm={12} md={4}>
-                                                        <span className={'input-label'}>Business Address</span>
-                                                    </Col>
-                                                    <Col sm={12} md={8}>
-                                                        <FormInput className="input-field"/>
-                                                    </Col>
-                                                </Row>
-                                            </React.Fragment>
-                                        )
-                                    }
-
-
-                                </Container>
-
-
-                                <Container className={'product-choose-form'}>
-                                    <Row>
-                                        <Col>
-                                            <div className={'heading4'}>
-                                                WHAT PRODUCTS ARE YOU CURRENTLY BUYING FROM NAPA?
-                                            </div>
-                                        </Col>
-                                    </Row>
-
-                                    <Row>
-                                        <Col sm={12} md={6}>
-                                            <FormCheckbox
-                                                checked={this.state.napaNewElectrical}
-                                                onChange={e => {
-                                                    this.setState({napaNewElectrical: !this.state.napaNewElectrical});
-                                                }}
-                                            >
-                                                NAPA NEW Electrical
-                                            </FormCheckbox>
-                                        </Col>
-                                        <Col sm={12} md={6}>
-                                            <FormCheckbox
-                                                checked={this.state.wilson}
-                                                onChange={e => {
-                                                    this.setState({wilson: !this.state.wilson});
-                                                }}
-                                            >
-                                                Wilson
-                                            </FormCheckbox>
-                                        </Col>
-                                    </Row>
-
-                                    <Row>
-                                        <Col sm={12} md={6}>
-                                            <FormCheckbox
-                                                checked={this.state.premiumPlus}
-                                                onChange={e => {
-                                                    this.setState({premiumPlus: !this.state.premiumPlus});
-                                                }}
-                                            >
-                                                NAPA Power Premium Plus
-                                            </FormCheckbox>
-                                        </Col>
-                                        <Col sm={12} md={6}>
-                                            <FormCheckbox
-                                                checked={this.state.premiumSteering}
-                                                onChange={e => {
-                                                    this.setState({premiumSteering: !this.state.premiumSteering});
-                                                }}
-                                            >
-                                                Premium NAPA Steering
-                                            </FormCheckbox>
-                                        </Col>
-                                    </Row>
-
-                                    <Row>
-                                        <Col sm={12} md={6}>
-                                            <FormCheckbox
-                                                checked={this.state.powerSupport}
-                                                onChange={e => {
-                                                    this.setState({powerSupport: !this.state.powerSupport});
-                                                }}
-                                            >
-                                                NAPA Power Sport
-                                            </FormCheckbox>
-                                        </Col>
-                                        <Col sm={12} md={6}>
-                                            <FormCheckbox
-                                                checked={this.state.newSteering}
-                                                onChange={e => {
-                                                    this.setState({newSteering: !this.state.newSteering});
-                                                }}
-                                            >
-                                                NAPA NEW Steering
-                                            </FormCheckbox>
-                                        </Col>
-                                    </Row>
-
-                                </Container>
-
-                                <Container className={'btn-view'}>
-                                    <Row>
-                                        <Col>
-                                            <Button className={'play-btn'} pill onClick={() => {
-                                                this.setState({isShowForm: false, screenType: 'spin'});
-                                            }}>Let's Play! >></Button>
-                                        </Col>
-                                    </Row>
-                                </Container>
-
-                            </div>
-                        </div>
-                    )
-                }
-
-            </div>
+            </LoadingOverlay>
         );
     }
 }
 
 const mapStateToProps = (state) => {
-
-    const {user} = state.user;
+    const {dataAddingStatus, error} = state.user;
     return {
-        user
+        dataAddingStatus,
+        dataAddingError: error
     };
 }
 

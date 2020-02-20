@@ -6,6 +6,9 @@ import {Link} from "react-router-dom";
 import LoadingOverlay from 'react-loading-overlay';
 import {faEdit, faTrash, faChevronRight} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {CSVLink} from "react-csv";
+import * as moment from 'moment'
+
 
 import {
     Navbar,
@@ -30,21 +33,26 @@ import {
     Container,
     Row,
     Col,
+    Alert,
     FormCheckbox
 } from "shards-react";
+import {napaProducts} from "../../constants";
 
 class Dashboard extends Component {
     state = {
-        userName: "",
-        userPassword: "",
-        rememberMe: false,
-        loading: false,
-        showConfirmDeleteModal: false,
-        showUserDataModel: false,
-        usersData: [1, 2, 3, 4, 5, 6, 7],
-
         affiliatedWithNapaStore: false,
         anInstallerCustomer: false,
+
+        fullName: "",
+        emailAddress: "",
+
+        storeNumber: "",
+        servicingDC: "",
+        storeName: "",
+        storeAddress: "",
+
+        businessName: "",
+        businessAddress: "",
 
         napaNewElectrical: false,
         wilson: false,
@@ -52,6 +60,12 @@ class Dashboard extends Component {
         premiumSteering: false,
         powerSupport: false,
         newSteering: false,
+        formErrors: null,
+
+        showConfirmDeleteModal: false,
+        showUserDataModel: false,
+
+        selectedUserData: null
     };
 
 
@@ -59,18 +73,284 @@ class Dashboard extends Component {
     }
 
     componentDidMount() {
+        const userStr = localStorage.getItem('user_data');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user.id && user.email) {
+                    this.getUsersDataList();
+                } else {
+                    this.props.history.push("/admin/login");
+                }
+            } catch (e) {
+                this.props.history.push("/admin/login");
+            }
+        } else {
+            this.props.history.push("/admin/login");
+        }
+    }
 
+    getUsersDataList = () => {
+        const {dispatch} = this.props;
+        dispatch(actions.userDataList({})).then(() => {
+
+        });
+    }
+
+    deleteUserData = (userDataId) => {
+        const {dispatch} = this.props;
+        dispatch(actions.deleteUserData({
+            id: userDataId
+        })).then(() => {
+            setTimeout(() => {
+                const {dataDeleteStatus} = this.props;
+                if (dataDeleteStatus === 1) {
+                    this.setState({showConfirmDeleteModal: false});
+                }
+            }, 500);
+        });
+    }
+
+    updateUserData = () => {
+
+        const {selectedUserData} = this.state;
+        const {affiliatedWithNapaStore, anInstallerCustomer, fullName, emailAddress} = this.state;
+        const {storeNumber, servicingDC, storeName, storeAddress} = this.state;
+        const {businessName, businessAddress} = this.state;
+        const {napaNewElectrical, wilson, premiumPlus, premiumSteering, powerSupport, newSteering} = this.state;
+
+
+        var errors = {};
+
+        if (!fullName) {
+            errors['name'] = "Full name is required";
+        }
+        if (!emailAddress) {
+            errors['email'] = "Email address is required";
+        } else if (!this.validateEmail(emailAddress)) {
+            errors['email'] = "Email address is not valid";
+        }
+
+        if (affiliatedWithNapaStore) {
+            if (!storeNumber) {
+                errors['store_number'] = "Store number is required";
+            }
+            if (!servicingDC) {
+                errors['servicing_dc'] = "Servicing DC is required";
+            }
+            if (!storeName) {
+                errors['store_name'] = "Store name is required";
+            }
+            if (!storeAddress) {
+                errors['store_address'] = "Store address is required";
+            }
+        } else if (anInstallerCustomer) {
+            if (!businessName) {
+                errors['business_name'] = "Business name is required";
+            }
+            if (!businessAddress) {
+                errors['business_address'] = "Business address is required";
+            }
+        } else {
+            errors['user_type'] = "Select who are you?";
+        }
+
+
+        if (Object.keys(errors).length == 0) {
+            let postData = {
+                id: selectedUserData._id,
+                user_type: affiliatedWithNapaStore ? 'affiliated_with_napa_store' : 'installer_customer',
+                name: fullName,
+                email: emailAddress
+            };
+            if (affiliatedWithNapaStore) {
+                postData['store_number'] = storeNumber;
+                postData['servicing_dc'] = servicingDC;
+                postData['store_name'] = storeName;
+                postData['store_address'] = storeAddress;
+            } else if (anInstallerCustomer) {
+                postData['business_name'] = businessName;
+                postData['business_address'] = businessAddress;
+            }
+
+            let products = [];
+            if (napaNewElectrical) {
+                products.push(napaProducts.napaNewElectrical);
+            }
+            if (wilson) {
+                products.push(napaProducts.wilson);
+            }
+            if (premiumPlus) {
+                products.push(napaProducts.premiumPlus);
+            }
+            if (premiumSteering) {
+                products.push(napaProducts.premiumSteering);
+            }
+            if (powerSupport) {
+                products.push(napaProducts.powerSupport);
+            }
+            if (newSteering) {
+                products.push(napaProducts.newSteering);
+            }
+
+            postData['products_buying'] = products.join("|");
+
+            const {dispatch} = this.props;
+            dispatch(actions.updateUserData(postData)).then(() => {
+                setTimeout(() => {
+                    const {dataUpdateStatus} = this.props;
+                    if (dataUpdateStatus === 1) {
+                        this.closeUserModal();
+                    }
+                }, 500);
+            });
+        } else {
+            this.setState({formErrors: errors});
+        }
+    }
+
+    validateEmail(email) {
+        var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    }
+
+    closeUserModal = () => {
+        this.setState({
+            showUserDataModel: false,
+            selectedUserData: null,
+
+            affiliatedWithNapaStore: false,
+            anInstallerCustomer: false,
+
+            fullName: "",
+            emailAddress: "",
+
+            storeNumber: "",
+            servicingDC: "",
+            storeName: "",
+            storeAddress: "",
+
+            businessName: "",
+            businessAddress: "",
+
+            napaNewElectrical: false,
+            wilson: false,
+            premiumPlus: false,
+            premiumSteering: false,
+            powerSupport: false,
+            newSteering: false,
+            formErrors: null,
+        });
     }
 
 
+    showEditUserDataModal = (data) => {
+
+
+        let states = {
+            showUserDataModel: true,
+            selectedUserData: data,
+
+            affiliatedWithNapaStore: (data.user_type == 'affiliated_with_napa_store'),
+            anInstallerCustomer: (data.user_type == 'installer_customer'),
+
+            fullName: data.name,
+            emailAddress: data.email,
+
+            storeNumber: data.store_number,
+            servicingDC: data.servicing_dc,
+            storeName: data.store_name,
+            storeAddress: data.store_address,
+
+            businessName: data.business_name,
+            businessAddress: data.business_address,
+
+            napaNewElectrical: false,
+            wilson: false,
+            premiumPlus: false,
+            premiumSteering: false,
+            powerSupport: false,
+            newSteering: false,
+            formErrors: null,
+        };
+
+        const products = data.products_buying.split("|");
+
+        products.map((product) => {
+            if (product === napaProducts.napaNewElectrical) {
+                states['napaNewElectrical'] = true;
+            }
+            if (product === napaProducts.wilson) {
+                states['wilson'] = true;
+            }
+            if (product === napaProducts.premiumPlus) {
+                states['premiumPlus'] = true;
+            }
+            if (product === napaProducts.premiumSteering) {
+                states['premiumSteering'] = true;
+            }
+            if (product === napaProducts.powerSupport) {
+                states['powerSupport'] = true;
+            }
+            if (product === napaProducts.newSteering) {
+                states['newSteering'] = true;
+            }
+
+        });
+
+        this.setState(states);
+    }
+
+
+    formatCsvExport = (list) => {
+        let formattedData = [
+            [
+                'No.',
+                'User Type',
+                'Full Name',
+                'Email Address',
+                'Product Buying',
+                'Store Number',
+                'Servicing DC',
+                'Store Name',
+                'Store Address',
+                'Business Name',
+                'Business Address',
+                'Date'
+            ]
+        ];
+        if (list) {
+            list.map((data, key) => {
+                formattedData.push([
+                    key + 1,
+                    (data.user_type == 'affiliated_with_napa_store') ? 'affiliated with a NAPA store' : 'an installer customer',
+                    data.name,
+                    data.email,
+                    data.products_buying,
+                    data.store_number,
+                    data.servicing_dc,
+                    data.store_name,
+                    data.store_address,
+                    data.business_name,
+                    data.business_address,
+                    moment(data.Created_date).format('DD-MM-YYYY')
+                ]);
+            });
+        }
+        console.log(JSON.stringify(formattedData));
+        return formattedData;
+    }
+
     render() {
-        const {logginFailed, loggedIn, errorMessage} = this.state;
+        const {dataListStatus, userDataList, dataListError, dataDeleteStatus, dataDeleteError} = this.props;
+        const {dataUpdateStatus, dataUpdateError} = this.props;
+        let csvData = this.formatCsvExport(userDataList);
 
         return (
             <LoadingOverlay
-                active={this.state.loading}
+                active={dataListStatus === -1 || dataDeleteStatus === -1 || dataUpdateStatus === -1}
                 spinner
-                text='Logging In'
+                text='Connecting...'
             >
                 <div className="dashboard-page-container">
                     <Navbar className={'navbar-view'} type="dark">
@@ -79,6 +359,7 @@ class Dashboard extends Component {
                         <Nav navbar className="ml-auto">
                             <NavItem>
                                 <NavLink active href="#" onClick={() => {
+                                    localStorage.removeItem('user_data');
                                     this.props.history.push("/admin/login");
                                 }}>
                                     Logout
@@ -87,39 +368,51 @@ class Dashboard extends Component {
                         </Nav>
                     </Navbar>
 
-                    <Button squared theme="secondary" className={"export-btn"}>
-                        Export
-                    </Button>
+                    {
+                        (userDataList && userDataList.length > 0) && (
+                            <CSVLink
+                                data={csvData}
+                                asyncOnClick={true}
+                                target="_blank"
+                                filename={'napa_user_list.csv'}
+                            >
+                                <Button squared theme="secondary" className={"export-btn"}>
+                                    Export
+                                </Button>
+                            </CSVLink>
+                        )
+                    }
 
                     <table className={"table-view"}>
                         <tr>
                             <th>No.</th>
+                            <th>User Type</th>
                             <th>Full Name</th>
                             <th>Email</th>
-                            <th>Store Number</th>
-                            <th>Servicing DC</th>
-                            <th>Store Name</th>
-                            <th>Store Address</th>
+                            <th>Products Buying</th>
+                            <th>Date</th>
                             <th>Options</th>
                         </tr>
                         <tbody>
                         {
-                            this.state.usersData.map((data, key) => {
+                            userDataList && userDataList.map((data, key) => {
                                 return (
                                     <tr>
                                         <td>{key + 1}</td>
-                                        <td>Test User</td>
-                                        <td>test.one@gmail.com</td>
-                                        <td>11212</td>
-                                        <td>test dc</td>
-                                        <td>Test Store</td>
-                                        <td>Test Address</td>
+                                        <td>{data.user_type == 'affiliated_with_napa_store' ? 'affiliated with a NAPA store' : 'an installer customer'}</td>
+                                        <td>{data.name}</td>
+                                        <td>{data.email}</td>
+                                        <td>{data.products_buying}</td>
+                                        <td>{moment(data.Created_date).format('DD-MM-YYYY')}</td>
                                         <td className={'options'}>
                                             <Button className={'option-btn'} onClick={() => {
-                                                this.setState({showUserDataModel: true});
+                                                this.showEditUserDataModal(data);
                                             }}><FontAwesomeIcon icon={faEdit}/></Button>
                                             <Button className={'option-btn delete'} onClick={() => {
-                                                this.setState({showConfirmDeleteModal: true});
+                                                this.setState({
+                                                    showConfirmDeleteModal: true,
+                                                    selectedUserData: data,
+                                                });
                                             }}><FontAwesomeIcon
                                                 icon={faTrash}/></Button>
 
@@ -183,54 +476,219 @@ class Dashboard extends Component {
                                         <span className={'input-label'}>Full Name</span>
                                     </Col>
                                     <Col sm={12} md={8}>
-                                        <FormInput className="input-field"/>
+                                        <FormInput
+                                            className="input-field"
+                                            value={this.state.fullName}
+                                            onChange={(e) => this.setState({fullName: e.target.value})}
+                                        />
                                     </Col>
                                 </Row>
+                                {
+                                    (this.state.formErrors && this.state.formErrors['name']) && (
+                                        <Row>
+                                            <Col sm={12} md={4}></Col>
+                                            <Col sm={12} md={8}>
+                                                <div className={'input-error'}>
+                                                    {this.state.formErrors['name']}
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                    )
+                                }
+
 
                                 <Row>
                                     <Col sm={12} md={4}>
                                         <span className={'input-label'}>Email address</span>
                                     </Col>
                                     <Col sm={12} md={8}>
-                                        <FormInput className="input-field"/>
+                                        <FormInput
+                                            className="input-field"
+                                            type={"email"}
+                                            value={this.state.emailAddress}
+                                            onChange={(e) => this.setState({emailAddress: e.target.value})}
+                                        />
                                     </Col>
                                 </Row>
+                                {
+                                    (this.state.formErrors && this.state.formErrors['email']) && (
+                                        <Row>
+                                            <Col sm={12} md={4}></Col>
+                                            <Col sm={12} md={8}>
+                                                <div className={'input-error'}>
+                                                    {this.state.formErrors['email']}
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                    )
+                                }
 
-                                <Row>
-                                    <Col sm={12} md={4}>
-                                        <span className={'input-label'}>Store number</span>
-                                    </Col>
-                                    <Col sm={12} md={8}>
-                                        <FormInput className="input-field"/>
-                                    </Col>
-                                </Row>
 
-                                <Row>
-                                    <Col sm={12} md={4}>
-                                        <span className={'input-label'}>Servicing DC</span>
-                                    </Col>
-                                    <Col sm={12} md={8}>
-                                        <FormInput className="input-field"/>
-                                    </Col>
-                                </Row>
+                                {
+                                    this.state.affiliatedWithNapaStore && (
+                                        <React.Fragment>
+                                            <Row>
+                                                <Col sm={12} md={4}>
+                                                    <span className={'input-label'}>Store number</span>
+                                                </Col>
+                                                <Col sm={12} md={8}>
+                                                    <FormInput
+                                                        className="input-field"
+                                                        value={this.state.storeNumber}
+                                                        onChange={(e) => this.setState({storeNumber: e.target.value})}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            {
+                                                (this.state.formErrors && this.state.formErrors['store_number']) && (
+                                                    <Row>
+                                                        <Col sm={12} md={4}></Col>
+                                                        <Col sm={12} md={8}>
+                                                            <div className={'input-error'}>
+                                                                {this.state.formErrors['store_number']}
+                                                            </div>
+                                                        </Col>
+                                                    </Row>
+                                                )
+                                            }
 
-                                <Row>
-                                    <Col sm={12} md={4}>
-                                        <span className={'input-label'}>Store Name</span>
-                                    </Col>
-                                    <Col sm={12} md={8}>
-                                        <FormInput className="input-field"/>
-                                    </Col>
-                                </Row>
 
-                                <Row>
-                                    <Col sm={12} md={4}>
-                                        <span className={'input-label'}>Store address</span>
-                                    </Col>
-                                    <Col sm={12} md={8}>
-                                        <FormInput className="input-field"/>
-                                    </Col>
-                                </Row>
+                                            <Row>
+                                                <Col sm={12} md={4}>
+                                                    <span className={'input-label'}>Servicing DC</span>
+                                                </Col>
+                                                <Col sm={12} md={8}>
+                                                    <FormInput
+                                                        className="input-field"
+                                                        value={this.state.servicingDC}
+                                                        onChange={(e) => this.setState({servicingDC: e.target.value})}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            {
+                                                (this.state.formErrors && this.state.formErrors['servicing_dc']) && (
+                                                    <Row>
+                                                        <Col sm={12} md={4}></Col>
+                                                        <Col sm={12} md={8}>
+                                                            <div className={'input-error'}>
+                                                                {this.state.formErrors['servicing_dc']}
+                                                            </div>
+                                                        </Col>
+                                                    </Row>
+                                                )
+                                            }
+
+                                            <Row>
+                                                <Col sm={12} md={4}>
+                                                    <span className={'input-label'}>Store Name</span>
+                                                </Col>
+                                                <Col sm={12} md={8}>
+                                                    <FormInput
+                                                        className="input-field"
+                                                        value={this.state.storeName}
+                                                        onChange={(e) => this.setState({storeName: e.target.value})}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            {
+                                                (this.state.formErrors && this.state.formErrors['store_name']) && (
+                                                    <Row>
+                                                        <Col sm={12} md={4}></Col>
+                                                        <Col sm={12} md={8}>
+                                                            <div className={'input-error'}>
+                                                                {this.state.formErrors['store_name']}
+                                                            </div>
+                                                        </Col>
+                                                    </Row>
+                                                )
+                                            }
+
+                                            <Row>
+                                                <Col sm={12} md={4}>
+                                                    <span className={'input-label'}>Store address</span>
+                                                </Col>
+                                                <Col sm={12} md={8}>
+                                                    <FormInput
+                                                        className="input-field"
+                                                        value={this.state.storeAddress}
+                                                        onChange={(e) => this.setState({storeAddress: e.target.value})}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            {
+                                                (this.state.formErrors && this.state.formErrors['store_address']) && (
+                                                    <Row>
+                                                        <Col sm={12} md={4}></Col>
+                                                        <Col sm={12} md={8}>
+                                                            <div className={'input-error'}>
+                                                                {this.state.formErrors['store_address']}
+                                                            </div>
+                                                        </Col>
+                                                    </Row>
+                                                )
+                                            }
+                                        </React.Fragment>
+                                    )
+                                }
+
+
+                                {
+                                    this.state.anInstallerCustomer && (
+                                        <React.Fragment>
+                                            <Row>
+                                                <Col sm={12} md={4}>
+                                                    <span className={'input-label'}>Business Name</span>
+                                                </Col>
+                                                <Col sm={12} md={8}>
+                                                    <FormInput
+                                                        className="input-field"
+                                                        value={this.state.businessName}
+                                                        onChange={(e) => this.setState({businessName: e.target.value})}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            {
+                                                (this.state.formErrors && this.state.formErrors['business_name']) && (
+                                                    <Row>
+                                                        <Col sm={12} md={4}></Col>
+                                                        <Col sm={12} md={8}>
+                                                            <div className={'input-error'}>
+                                                                {this.state.formErrors['business_name']}
+                                                            </div>
+                                                        </Col>
+                                                    </Row>
+                                                )
+                                            }
+
+                                            <Row>
+                                                <Col sm={12} md={4}>
+                                                    <span className={'input-label'}>Business Address</span>
+                                                </Col>
+                                                <Col sm={12} md={8}>
+                                                    <FormInput
+                                                        className="input-field"
+                                                        value={this.state.businessAddress}
+                                                        onChange={(e) => this.setState({businessAddress: e.target.value})}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            {
+                                                (this.state.formErrors && this.state.formErrors['business_address']) && (
+                                                    <Row>
+                                                        <Col sm={12} md={4}></Col>
+                                                        <Col sm={12} md={8}>
+                                                            <div className={'input-error'}>
+                                                                {this.state.formErrors['business_address']}
+                                                            </div>
+                                                        </Col>
+                                                    </Row>
+                                                )
+                                            }
+                                        </React.Fragment>
+                                    )
+                                }
+
+
                             </Container>
 
 
@@ -238,7 +696,7 @@ class Dashboard extends Component {
                                 <Row>
                                     <Col>
                                         <div className={'heading4'}>
-                                            PRODUCTS ARE YOU CURRENTLY BUYING FROM NAPA
+                                            WHAT PRODUCTS ARE YOU CURRENTLY BUYING FROM NAPA?
                                         </div>
                                     </Col>
                                 </Row>
@@ -251,7 +709,7 @@ class Dashboard extends Component {
                                                 this.setState({napaNewElectrical: !this.state.napaNewElectrical});
                                             }}
                                         >
-                                            NAPA NEW Electrical
+                                            {napaProducts.napaNewElectrical}
                                         </FormCheckbox>
                                     </Col>
                                     <Col sm={12} md={6}>
@@ -261,7 +719,7 @@ class Dashboard extends Component {
                                                 this.setState({wilson: !this.state.wilson});
                                             }}
                                         >
-                                            Wilson
+                                            {napaProducts.wilson}
                                         </FormCheckbox>
                                     </Col>
                                 </Row>
@@ -274,7 +732,7 @@ class Dashboard extends Component {
                                                 this.setState({premiumPlus: !this.state.premiumPlus});
                                             }}
                                         >
-                                            NAPA Power Premium Plus
+                                            {napaProducts.premiumPlus}
                                         </FormCheckbox>
                                     </Col>
                                     <Col sm={12} md={6}>
@@ -284,7 +742,7 @@ class Dashboard extends Component {
                                                 this.setState({premiumSteering: !this.state.premiumSteering});
                                             }}
                                         >
-                                            Premium NAPA Steering
+                                            {napaProducts.premiumSteering}
                                         </FormCheckbox>
                                     </Col>
                                 </Row>
@@ -297,7 +755,7 @@ class Dashboard extends Component {
                                                 this.setState({powerSupport: !this.state.powerSupport});
                                             }}
                                         >
-                                            NAPA Power Sport
+                                            {napaProducts.powerSupport}
                                         </FormCheckbox>
                                     </Col>
                                     <Col sm={12} md={6}>
@@ -307,23 +765,28 @@ class Dashboard extends Component {
                                                 this.setState({newSteering: !this.state.newSteering});
                                             }}
                                         >
-                                            NAPA NEW Steering
+                                            {napaProducts.newSteering}
                                         </FormCheckbox>
                                     </Col>
                                 </Row>
 
                             </Container>
 
+                            {
+                                dataUpdateStatus == 0 && (
+                                    <Alert theme="danger">{dataUpdateError}</Alert>
+                                )
+                            }
 
                         </div>
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button  className={'play-btn'} onClick={() => {
-                            this.setState({showUserDataModel: false});
+                        <Button className={'play-btn'} onClick={() => {
+                            this.updateUserData();
                         }} theme={'success'}>Save</Button>
-                        <Button theme={'dark'}  className={'play-btn'} onClick={() => {
-                            this.setState({showUserDataModel: false});
+                        <Button theme={'dark'} className={'play-btn'} onClick={() => {
+                            this.closeUserModal();
                         }}>Cancel</Button>
                     </ModalFooter>
                 </Modal>
@@ -333,10 +796,18 @@ class Dashboard extends Component {
                     this.setState({showConfirmDeleteModal: false})
                 }}>
                     <ModalHeader>Confirm!</ModalHeader>
-                    <ModalBody>Do you really want to remove this user data?</ModalBody>
+                    <ModalBody>
+                        Do you really want to remove this user data?
+                        {
+                            dataDeleteStatus == 0 && (
+                                <Alert theme="danger">{dataDeleteError}</Alert>
+                            )
+                        }
+
+                    </ModalBody>
                     <ModalFooter>
                         <Button theme={'danger'} onClick={() => {
-                            this.setState({showConfirmDeleteModal: false});
+                            this.deleteUserData(this.state.selectedUserData._id);
                         }}>YES</Button>
                         <Button theme={'dark'} onClick={() => {
                             this.setState({showConfirmDeleteModal: false});
@@ -350,7 +821,16 @@ class Dashboard extends Component {
 }
 
 const mapStateToProps = (state) => {
-    return {};
+    const {dataListStatus, dataDeleteStatus, userDataList, dataListError, dataDeleteError, dataUpdateStatus, dataUpdateError} = state.user;
+    return {
+        dataListStatus,
+        dataDeleteStatus,
+        userDataList,
+        dataListError,
+        dataDeleteError,
+        dataUpdateStatus,
+        dataUpdateError
+    };
 }
 
 export default connect(mapStateToProps)(Dashboard);

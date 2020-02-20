@@ -14,15 +14,16 @@ import {
     Button,
     Form,
     FormGroup,
-    FormInput
+    FormInput,
+    Alert
 } from "shards-react";
 
 class Login extends Component {
     state = {
         userName: "",
         userPassword: "",
-        rememberMe: false,
-        loading: false
+        loading: false,
+        submitted: false
     };
 
 
@@ -30,16 +31,44 @@ class Login extends Component {
     }
 
     componentDidMount() {
+        const userStr = localStorage.getItem('user_data');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user) {
+                    this.props.history.push("/admin/dashboard");
+                }
+            } catch (e) {
 
+            }
+        }
     }
 
+    doLogin = () => {
+        this.setState({submitted: true});
+        const {userName, userPassword} = this.state;
+        const {dispatch} = this.props;
+        if (userName && userPassword) {
+            dispatch(actions.doLogin({
+                email: userName,
+                password: userPassword
+            })).then(() => {
+                setTimeout(() => {
+                    const {loginStatus} = this.props;
+                    if (loginStatus === 1) {
+                        this.props.history.push("/admin/dashboard");
+                    }
+                }, 500);
+            });
+        }
+    }
 
     render() {
-        const {logginFailed, loggedIn, errorMessage} = this.state;
+        const {loginStatus, user, loginError} = this.props;
 
         return (
             <LoadingOverlay
-                active={this.state.loading}
+                active={loginStatus == -1}
                 spinner
                 text='Logging In'
             >
@@ -49,23 +78,46 @@ class Login extends Component {
                         <CardBody>
 
                             {
-                                logginFailed && (
-                                    <div className={'error'}>{errorMessage}</div>
+                                loginStatus == 0 && (
+                                    <Alert theme="danger">{loginError}</Alert>
                                 )
                             }
                             {
-                                loggedIn && (
-                                    <div className={"success"}>Login Success</div>
+                                loginStatus == 1 && (
+                                    <Alert theme="success">Login Success</Alert>
                                 )
                             }
                             <Form>
                                 <FormGroup>
                                     <label htmlFor="username">Username</label>
-                                    <FormInput id="username" type={'email'}/>
+                                    <FormInput
+                                        id="username"
+                                        type={'email'}
+                                        value={this.state.userName}
+                                        onChange={(e) => this.setState({userName: e.target.value})}
+                                    />
+
+                                    {
+                                        (this.state.submitted && !this.state.userName) && (
+                                            <div className={'input-error'}>
+                                                Username is required
+                                            </div>
+                                        )
+                                    }
                                 </FormGroup>
                                 <FormGroup>
                                     <label htmlFor="username">Password</label>
-                                    <FormInput id="username" type={"password"}/>
+                                    <FormInput id="username"
+                                               type={"password"}
+                                               value={this.state.userPassword}
+                                               onChange={(e) => this.setState({userPassword: e.target.value})}/>
+                                    {
+                                        (this.state.submitted && !this.state.userPassword) && (
+                                            <div className={'input-error'}>
+                                                Password is required
+                                            </div>
+                                        )
+                                    }
                                 </FormGroup>
                             </Form>
 
@@ -73,7 +125,7 @@ class Login extends Component {
                         </CardBody>
                         <CardFooter>
                             <Button block squared theme="secondary" onClick={() => {
-                                this.props.history.push("/admin/dashboard");
+                                this.doLogin();
                             }}>
                                 Login
                             </Button>
@@ -87,7 +139,12 @@ class Login extends Component {
 }
 
 const mapStateToProps = (state) => {
-    return {};
+    const {loginStatus, user, error} = state.user;
+    return {
+        loginStatus,
+        user,
+        loginError: error
+    };
 }
 
 export default connect(mapStateToProps)(Login);
