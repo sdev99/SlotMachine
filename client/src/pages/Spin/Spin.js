@@ -48,10 +48,8 @@ class Spin extends Component {
         newSteering: false,
         formErrors: null,
 
-        // isShowForm: true,
-        isShowForm: false,
+        isShowForm: true,
 
-        // showVideo: false,
         showVideo: false,
         disableSpin: false,
         screenType: 'spin',
