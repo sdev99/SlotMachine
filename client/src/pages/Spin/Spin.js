@@ -22,7 +22,7 @@ import LoadingOverlay from "react-loading-overlay";
 const SLOTS_PER_REEL = 12;
 // radius = Math.round( ( panelWidth / 2) / Math.tan( Math.PI / SLOTS_PER_REEL ) );
 // current settings give a value of 149, rounded to 150
-const REEL_RADIUS = 500;
+let REEL_RADIUS = 500;
 
 class Spin extends Component {
     state = {
@@ -48,8 +48,10 @@ class Spin extends Component {
         newSteering: false,
         formErrors: null,
 
-        isShowForm: true,
+        // isShowForm: true,
+        isShowForm: false,
 
+        // showVideo: false,
         showVideo: false,
         disableSpin: false,
         screenType: 'spin',
@@ -67,6 +69,40 @@ class Spin extends Component {
 
     componentWillMount() {
 
+        window.addEventListener('orientationchange', this.setScreenOrientation);
+        this.setScreenOrientation();
+    }
+
+    setScreenOrientation = () => {
+        if (window.matchMedia("(orientation: portrait)").matches) {
+            console.log('orientation: portrait');
+            if (window.innerWidth <= 319) {
+                REEL_RADIUS = 105;
+            } else if (window.innerWidth >= 320 && window.innerWidth <= 400) {
+                REEL_RADIUS = 120;
+            } else if (window.innerWidth >= 401 && window.innerWidth <= 767) {
+                REEL_RADIUS = 150;
+            } else if (window.innerWidth >= 768 && window.innerWidth <= 1024) {
+                REEL_RADIUS = 300;
+            } else if (window.innerWidth >= 1025) {
+                REEL_RADIUS = 800;
+            }
+        }
+
+        if (window.matchMedia("(orientation: landscape)").matches) {
+            console.log('orientation: landscape');
+            if (window.innerHeight <= 319) {
+                REEL_RADIUS = 105;
+            }  else if (window.innerHeight >= 320 && window.innerHeight <= 400) {
+                REEL_RADIUS = 120;
+            } else if (window.innerHeight >= 401 && window.innerHeight <= 767) {
+                REEL_RADIUS = 150;
+            } else if (window.innerHeight >= 768 && window.innerHeight <= 1024) {
+                REEL_RADIUS = 300;
+            } else if (window.innerHeight >= 1025) {
+                REEL_RADIUS = 800;
+            }
+        }
     }
 
     componentDidMount() {
@@ -151,9 +187,11 @@ class Spin extends Component {
                     document.getElementById('trainingvideoview').play();
                 }, 300);
             } else if (this.state.screenType == 'spinagainlast') {
-                this.setState({disableSpin: false, screenType: 'finalscreen'});
+                this.setState({disableSpin: true, screenType: 'finalscreen'});
                 setTimeout(() => {
-                    this.setState({isShowForm: true, screenType: 'spin'});
+                    this.setState({disableSpin:false, isShowForm: true, screenType: 'spin'}, () => {
+                        this.setUpSlots();
+                    });
                 }, 5 * 1000);
             } else {
                 this.setState({disableSpin: false, screenType: 'spinagain'});
@@ -325,7 +363,7 @@ class Spin extends Component {
 
 
                         {
-                            this.state.isImageLoad && (
+                            (this.state.isImageLoad && (this.state.screenType === 'spinagain' || this.state.screenType === 'spinagainlast' || this.state.screenType === 'spin')) && (
                                 <div id="rotate">
                                     <div id="ring1" className="ring"></div>
                                     <div id="ring2" className="ring"></div>
@@ -346,9 +384,10 @@ class Spin extends Component {
                     {
                         this.state.showVideo && (
                             <div className={'video-container'}>
-                                <video className={'video-view'} autoPlay id={'trainingvideoview'} onEnded={() => {
-                                    this.setState({showVideo: false});
-                                }}>
+                                <video controls={false} className={'video-view'} autoPlay id={'trainingvideoview'}
+                                       onEnded={() => {
+                                           this.setState({showVideo: false});
+                                       }}>
                                     <source src="videos/sample.mp4" type="video/mp4"/>
                                 </video>
                             </div>
