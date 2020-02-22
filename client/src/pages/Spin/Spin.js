@@ -94,7 +94,7 @@ class Spin extends Component {
             }  else if (window.innerHeight >= 320 && window.innerHeight <= 400) {
                 REEL_RADIUS = 120;
             } else if (window.innerHeight >= 401 && window.innerHeight <= 767) {
-                REEL_RADIUS = 150;
+                REEL_RADIUS = 300;
             } else if (window.innerHeight >= 768 && window.innerHeight <= 1024) {
                 REEL_RADIUS = 300;
             } else if (window.innerHeight >= 1025) {
