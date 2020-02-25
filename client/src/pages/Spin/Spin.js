@@ -91,7 +91,7 @@ class Spin extends Component {
             console.log('orientation: landscape');
             if (window.innerHeight <= 319) {
                 REEL_RADIUS = 105;
-            }  else if (window.innerHeight >= 320 && window.innerHeight <= 400) {
+            } else if (window.innerHeight >= 320 && window.innerHeight <= 400) {
                 REEL_RADIUS = 120;
             } else if (window.innerHeight >= 401 && window.innerHeight <= 767) {
                 REEL_RADIUS = 300;
@@ -186,11 +186,11 @@ class Spin extends Component {
                 }, 300);
             } else if (this.state.screenType == 'spinagainlast') {
                 this.setState({disableSpin: true, screenType: 'finalscreen'});
-                setTimeout(() => {
-                    this.setState({disableSpin:false, isShowForm: true, screenType: 'spin'}, () => {
-                        this.setUpSlots();
-                    });
-                }, 5 * 1000);
+                // setTimeout(() => {
+                //     this.setState({disableSpin:false, isShowForm: true, screenType: 'spin'}, () => {
+                //         this.setUpSlots();
+                //     });
+                // }, 5 * 1000);
             } else {
                 this.setState({disableSpin: false, screenType: 'spinagain'});
             }
@@ -359,6 +359,16 @@ class Spin extends Component {
                             style={{opacity: (this.state.screenType == 'finalscreen') ? 1 : 0}}
                         />
 
+                        {
+                            (this.state.screenType == 'finalscreen') && (
+                                <Button className={'start-over-btn'} pill onClick={() => {
+                                    this.setState({disableSpin: false, isShowForm: true, screenType: 'spin'}, () => {
+                                        this.setUpSlots();
+                                    });
+                                }}>Start Over</Button>
+                            )
+                        }
+
 
                         {
                             (this.state.isImageLoad && (this.state.screenType === 'spinagain' || this.state.screenType === 'spinagainlast' || this.state.screenType === 'spin')) && (
@@ -382,7 +392,7 @@ class Spin extends Component {
                     {
                         this.state.showVideo && (
                             <div className={'video-container'}>
-                                <video controls={false} className={'video-view'} autoPlay id={'trainingvideoview'}
+                                <video controls={true} className={'video-view'} autoPlay muted id={'trainingvideoview'}
                                        onEnded={() => {
                                            this.setState({showVideo: false});
                                        }}>
@@ -788,6 +798,7 @@ class Spin extends Component {
                             </div>
                         )
                     }
+
 
                 </div>
             </LoadingOverlay>
