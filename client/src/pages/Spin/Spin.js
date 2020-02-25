@@ -326,7 +326,7 @@ class Spin extends Component {
         }
     }
 
-    handleProductChange(e, product) {
+    handleProductChange = (e, product) => {
         if (!checkboxwait) {
             checkboxwait = true;
             const newState = {};

@@ -38,6 +38,8 @@ import {
 } from "shards-react";
 import {napaProducts} from "../../constants";
 
+let checkboxwait = false;
+
 class Dashboard extends Component {
     state = {
         affiliatedWithNapaStore: false,
@@ -339,6 +341,18 @@ class Dashboard extends Component {
         }
         console.log(JSON.stringify(formattedData));
         return formattedData;
+    }
+
+    handleProductChange = (e, product) => {
+        if (!checkboxwait) {
+            checkboxwait = true;
+            const newState = {};
+            newState[product] = !this.state[product];
+            this.setState({...this.state, ...newState});
+            setTimeout(() => {
+                checkboxwait = false;
+            }, 200);
+        }
     }
 
     render() {
@@ -706,7 +720,7 @@ class Dashboard extends Component {
                                         <FormCheckbox
                                             checked={this.state.napaNewElectrical}
                                             onChange={e => {
-                                                this.setState({napaNewElectrical: !this.state.napaNewElectrical});
+                                                this.handleProductChange(e,'napaNewElectrical');
                                             }}
                                         >
                                             {napaProducts.napaNewElectrical}
@@ -716,7 +730,7 @@ class Dashboard extends Component {
                                         <FormCheckbox
                                             checked={this.state.wilson}
                                             onChange={e => {
-                                                this.setState({wilson: !this.state.wilson});
+                                                this.handleProductChange(e,'wilson');
                                             }}
                                         >
                                             {napaProducts.wilson}
@@ -729,7 +743,7 @@ class Dashboard extends Component {
                                         <FormCheckbox
                                             checked={this.state.premiumPlus}
                                             onChange={e => {
-                                                this.setState({premiumPlus: !this.state.premiumPlus});
+                                                this.handleProductChange(e,'premiumPlus');
                                             }}
                                         >
                                             {napaProducts.premiumPlus}
@@ -739,7 +753,7 @@ class Dashboard extends Component {
                                         <FormCheckbox
                                             checked={this.state.premiumSteering}
                                             onChange={e => {
-                                                this.setState({premiumSteering: !this.state.premiumSteering});
+                                                this.handleProductChange(e,'premiumSteering');
                                             }}
                                         >
                                             {napaProducts.premiumSteering}
@@ -752,7 +766,7 @@ class Dashboard extends Component {
                                         <FormCheckbox
                                             checked={this.state.powerSupport}
                                             onChange={e => {
-                                                this.setState({powerSupport: !this.state.powerSupport});
+                                                this.handleProductChange(e,'powerSupport');
                                             }}
                                         >
                                             {napaProducts.powerSupport}
@@ -762,7 +776,7 @@ class Dashboard extends Component {
                                         <FormCheckbox
                                             checked={this.state.newSteering}
                                             onChange={e => {
-                                                this.setState({newSteering: !this.state.newSteering});
+                                                this.handleProductChange(e,'newSteering');
                                             }}
                                         >
                                             {napaProducts.newSteering}
