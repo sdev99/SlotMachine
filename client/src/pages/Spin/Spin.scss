@@ -27,7 +27,7 @@
     height: auto;
     padding: 16px;
     margin: auto;
-    z-index: 11;
+    z-index: 100;
 
     .form-container {
       padding: 16px;
@@ -116,7 +116,7 @@
     justify-content: center;
     align-items: center;
     background-color: #04111E;
-    z-index: 1111111111;
+    z-index: 100;
   }
 
   .spin-bg-image {
@@ -155,6 +155,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 100;
 
     .video-view {
       width: 80%;
