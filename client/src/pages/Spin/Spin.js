@@ -23,6 +23,7 @@ const SLOTS_PER_REEL = 12;
 // radius = Math.round( ( panelWidth / 2) / Math.tan( Math.PI / SLOTS_PER_REEL ) );
 // current settings give a value of 149, rounded to 150
 let REEL_RADIUS = 500;
+let checkboxwait = false;
 
 class Spin extends Component {
     state = {
@@ -322,6 +323,18 @@ class Spin extends Component {
             });
         } else {
             this.setState({formErrors: errors});
+        }
+    }
+
+    handleProductChange(e, product) {
+        if (!checkboxwait) {
+            checkboxwait = true;
+            const newState = {};
+            newState[product] = !this.state[product];
+            this.setState({...this.state, ...newState});
+            setTimeout(() => {
+                checkboxwait = false;
+            }, 200);
         }
     }
 
@@ -712,7 +725,7 @@ class Spin extends Component {
                                                 <FormCheckbox
                                                     checked={this.state.napaNewElectrical}
                                                     onChange={e => {
-                                                        this.setState({napaNewElectrical: !this.state.napaNewElectrical});
+                                                        this.handleProductChange(e, 'napaNewElectrical');
                                                     }}
                                                 >
                                                     {napaProducts.napaNewElectrical}
@@ -722,7 +735,7 @@ class Spin extends Component {
                                                 <FormCheckbox
                                                     checked={this.state.wilson}
                                                     onChange={e => {
-                                                        this.setState({wilson: !this.state.wilson});
+                                                        this.handleProductChange(e, 'wilson');
                                                     }}
                                                 >
                                                     {napaProducts.wilson}
@@ -735,7 +748,7 @@ class Spin extends Component {
                                                 <FormCheckbox
                                                     checked={this.state.premiumPlus}
                                                     onChange={e => {
-                                                        this.setState({premiumPlus: !this.state.premiumPlus});
+                                                        this.handleProductChange(e, 'premiumPlus');
                                                     }}
                                                 >
                                                     {napaProducts.premiumPlus}
@@ -745,7 +758,7 @@ class Spin extends Component {
                                                 <FormCheckbox
                                                     checked={this.state.premiumSteering}
                                                     onChange={e => {
-                                                        this.setState({premiumSteering: !this.state.premiumSteering});
+                                                        this.handleProductChange(e, 'premiumSteering');
                                                     }}
                                                 >
                                                     {napaProducts.premiumSteering}
@@ -758,7 +771,7 @@ class Spin extends Component {
                                                 <FormCheckbox
                                                     checked={this.state.powerSupport}
                                                     onChange={e => {
-                                                        this.setState({powerSupport: !this.state.powerSupport});
+                                                        this.handleProductChange(e, 'powerSupport');
                                                     }}
                                                 >
                                                     {napaProducts.powerSupport}
@@ -768,7 +781,7 @@ class Spin extends Component {
                                                 <FormCheckbox
                                                     checked={this.state.newSteering}
                                                     onChange={e => {
-                                                        this.setState({newSteering: !this.state.newSteering});
+                                                        this.handleProductChange(e, 'newSteering');
                                                     }}
                                                 >
                                                     {napaProducts.newSteering}
