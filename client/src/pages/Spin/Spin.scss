@@ -21,6 +21,7 @@
     font-size: 22px;
     font-weight: bold;
   }
+
   .container {
     width: 100%;
     height: auto;
@@ -122,6 +123,7 @@
     height: auto;
     object-fit: contain;
     position: absolute;
+    z-index: -1;
   }
 
 
