@@ -41,6 +41,10 @@ class Spin extends Component {
         businessName: "",
         businessAddress: "",
 
+        city: "",
+        stateName: "",
+        zip: "",
+
         napaNewElectrical: false,
         wilson: false,
         premiumPlus: false,
@@ -207,7 +211,7 @@ class Spin extends Component {
 
     submitUserData = () => {
 
-        const {affiliatedWithNapaStore, anInstallerCustomer, fullName, emailAddress} = this.state;
+        const {affiliatedWithNapaStore, anInstallerCustomer, fullName, emailAddress, city, stateName, zip} = this.state;
         const {storeNumber, servicingDC, storeName, storeAddress} = this.state;
         const {businessName, businessAddress} = this.state;
         const {napaNewElectrical, wilson, premiumPlus, premiumSteering, powerSupport, newSteering} = this.state;
@@ -218,6 +222,16 @@ class Spin extends Component {
         if (!fullName) {
             errors['name'] = "Full name is required";
         }
+        if (!city) {
+            errors['city'] = "City is required";
+        }
+        if (!stateName) {
+            errors['state'] = "State  is required";
+        }
+        if (!zip) {
+            errors['zip'] = "Zip is required";
+        }
+
         if (!emailAddress) {
             errors['email'] = "Email address is required";
         } else if (!this.validateEmail(emailAddress)) {
@@ -235,14 +249,14 @@ class Spin extends Component {
                 errors['store_name'] = "Store name is required";
             }
             if (!storeAddress) {
-                errors['store_address'] = "Store address is required";
+                errors['store_address'] = "Store street is required";
             }
         } else if (anInstallerCustomer) {
             if (!businessName) {
                 errors['business_name'] = "Business name is required";
             }
             if (!businessAddress) {
-                errors['business_address'] = "Business address is required";
+                errors['business_address'] = "Business street is required";
             }
         } else {
             errors['user_type'] = "Select who are you?";
@@ -253,7 +267,10 @@ class Spin extends Component {
             let postData = {
                 user_type: affiliatedWithNapaStore ? 'affiliated_with_napa_store' : 'installer_customer',
                 name: fullName,
-                email: emailAddress
+                email: emailAddress,
+                city: city,
+                state: stateName,
+                zip: zip,
             };
             if (affiliatedWithNapaStore) {
                 postData['store_number'] = storeNumber;
@@ -306,6 +323,10 @@ class Spin extends Component {
                             servicingDC: "",
                             storeName: "",
                             storeAddress: "",
+
+                            city: "",
+                            stateName: "",
+                            zip: "",
 
                             businessName: "",
                             businessAddress: "",
@@ -405,7 +426,7 @@ class Spin extends Component {
                     {
                         this.state.showVideo && (
                             <div className={'video-container'}>
-                                <video controls={true} className={'video-view'} autoPlay muted id={'trainingvideoview'}
+                                <video controls={false} className={'video-view'} autoPlay muted id={'trainingvideoview'}
                                        onEnded={() => {
                                            this.setState({showVideo: false});
                                        }}>
@@ -624,7 +645,7 @@ class Spin extends Component {
 
                                                     <Row>
                                                         <Col sm={12} md={4}>
-                                                            <span className={'input-label'}>Store address</span>
+                                                            <span className={'input-label'}>Store street</span>
                                                         </Col>
                                                         <Col sm={12} md={8}>
                                                             <FormInput
@@ -681,7 +702,7 @@ class Spin extends Component {
 
                                                     <Row>
                                                         <Col sm={12} md={4}>
-                                                            <span className={'input-label'}>Business Address</span>
+                                                            <span className={'input-label'}>Business Street</span>
                                                         </Col>
                                                         <Col sm={12} md={8}>
                                                             <FormInput
@@ -704,6 +725,83 @@ class Spin extends Component {
                                                         )
                                                     }
                                                 </React.Fragment>
+                                            )
+                                        }
+
+
+                                        <Row>
+                                            <Col sm={12} md={4}>
+                                                <span className={'input-label'}>City</span>
+                                            </Col>
+                                            <Col sm={12} md={8}>
+                                                <FormInput
+                                                    className="input-field"
+                                                    value={this.state.city}
+                                                    onChange={(e) => this.setState({city: e.target.value})}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {
+                                            (this.state.formErrors && this.state.formErrors['city']) && (
+                                                <Row>
+                                                    <Col sm={12} md={4}></Col>
+                                                    <Col sm={12} md={8}>
+                                                        <div className={'input-error'}>
+                                                            {this.state.formErrors['city']}
+                                                        </div>
+                                                    </Col>
+                                                </Row>
+                                            )
+                                        }
+
+                                        <Row>
+                                            <Col sm={12} md={4}>
+                                                <span className={'input-label'}>State</span>
+                                            </Col>
+                                            <Col sm={12} md={8}>
+                                                <FormInput
+                                                    className="input-field"
+                                                    value={this.state.stateName}
+                                                    onChange={(e) => this.setState({stateName: e.target.value})}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {
+                                            (this.state.formErrors && this.state.formErrors['state']) && (
+                                                <Row>
+                                                    <Col sm={12} md={4}></Col>
+                                                    <Col sm={12} md={8}>
+                                                        <div className={'input-error'}>
+                                                            {this.state.formErrors['state']}
+                                                        </div>
+                                                    </Col>
+                                                </Row>
+                                            )
+                                        }
+
+
+                                        <Row>
+                                            <Col sm={12} md={4}>
+                                                <span className={'input-label'}>Zip</span>
+                                            </Col>
+                                            <Col sm={12} md={8}>
+                                                <FormInput
+                                                    className="input-field"
+                                                    value={this.state.zip}
+                                                    onChange={(e) => this.setState({zip: e.target.value})}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {
+                                            (this.state.formErrors && this.state.formErrors['zip']) && (
+                                                <Row>
+                                                    <Col sm={12} md={4}></Col>
+                                                    <Col sm={12} md={8}>
+                                                        <div className={'input-error'}>
+                                                            {this.state.formErrors['zip']}
+                                                        </div>
+                                                    </Col>
+                                                </Row>
                                             )
                                         }
 

@@ -150,7 +150,7 @@ class Home extends Component {
 
                                         <Row>
                                             <Col sm={12} md={4}>
-                                                <span className={'input-label'}>Store address</span>
+                                                <span className={'input-label'}>Store street</span>
                                             </Col>
                                             <Col sm={12} md={8}>
                                                 <FormInput className="input-field"/>
@@ -175,7 +175,7 @@ class Home extends Component {
 
                                         <Row>
                                             <Col sm={12} md={4}>
-                                                <span className={'input-label'}>Business Address</span>
+                                                <span className={'input-label'}>Business Street</span>
                                             </Col>
                                             <Col sm={12} md={8}>
                                                 <FormInput className="input-field"/>

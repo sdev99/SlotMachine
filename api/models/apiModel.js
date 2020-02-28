@@ -34,6 +34,16 @@ var UserDataSchema = new Schema({
     business_address: {
         type: String,
     },
+    city: {
+        type: String,
+    },
+    state: {
+        type: String,
+    },
+    zip: {
+        type: String,
+    },
+
     products_buying: {
         type: String,
     },

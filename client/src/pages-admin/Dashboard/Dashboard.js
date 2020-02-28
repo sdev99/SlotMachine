@@ -56,6 +56,10 @@ class Dashboard extends Component {
         businessName: "",
         businessAddress: "",
 
+        city: "",
+        stateName: "",
+        zip: "",
+
         napaNewElectrical: false,
         wilson: false,
         premiumPlus: false,
@@ -116,7 +120,7 @@ class Dashboard extends Component {
     updateUserData = () => {
 
         const {selectedUserData} = this.state;
-        const {affiliatedWithNapaStore, anInstallerCustomer, fullName, emailAddress} = this.state;
+        const {affiliatedWithNapaStore, anInstallerCustomer, fullName, emailAddress, city, stateName, zip} = this.state;
         const {storeNumber, servicingDC, storeName, storeAddress} = this.state;
         const {businessName, businessAddress} = this.state;
         const {napaNewElectrical, wilson, premiumPlus, premiumSteering, powerSupport, newSteering} = this.state;
@@ -127,6 +131,17 @@ class Dashboard extends Component {
         if (!fullName) {
             errors['name'] = "Full name is required";
         }
+
+        if (!city) {
+            errors['city'] = "City is required";
+        }
+        if (!stateName) {
+            errors['state'] = "State  is required";
+        }
+        if (!zip) {
+            errors['zip'] = "Zip is required";
+        }
+
         if (!emailAddress) {
             errors['email'] = "Email address is required";
         } else if (!this.validateEmail(emailAddress)) {
@@ -144,14 +159,14 @@ class Dashboard extends Component {
                 errors['store_name'] = "Store name is required";
             }
             if (!storeAddress) {
-                errors['store_address'] = "Store address is required";
+                errors['store_address'] = "Store street is required";
             }
         } else if (anInstallerCustomer) {
             if (!businessName) {
                 errors['business_name'] = "Business name is required";
             }
             if (!businessAddress) {
-                errors['business_address'] = "Business address is required";
+                errors['business_address'] = "Business street is required";
             }
         } else {
             errors['user_type'] = "Select who are you?";
@@ -163,7 +178,10 @@ class Dashboard extends Component {
                 id: selectedUserData._id,
                 user_type: affiliatedWithNapaStore ? 'affiliated_with_napa_store' : 'installer_customer',
                 name: fullName,
-                email: emailAddress
+                email: emailAddress,
+                city: city,
+                state: stateName,
+                zip: zip
             };
             if (affiliatedWithNapaStore) {
                 postData['store_number'] = storeNumber;
@@ -235,6 +253,10 @@ class Dashboard extends Component {
             businessName: "",
             businessAddress: "",
 
+            city: "",
+            stateName: "",
+            zip: "",
+
             napaNewElectrical: false,
             wilson: false,
             premiumPlus: false,
@@ -266,6 +288,10 @@ class Dashboard extends Component {
 
             businessName: data.business_name,
             businessAddress: data.business_address,
+
+            city: "",
+            stateName: "",
+            zip: "",
 
             napaNewElectrical: false,
             wilson: false,
@@ -315,9 +341,12 @@ class Dashboard extends Component {
                 'Store Number',
                 'Servicing DC',
                 'Store Name',
-                'Store Address',
+                'Store Street',
                 'Business Name',
-                'Business Address',
+                'Business Street',
+                'City',
+                'State',
+                'Zip',
                 'Date'
             ]
         ];
@@ -335,6 +364,9 @@ class Dashboard extends Component {
                     data.store_address,
                     data.business_name,
                     data.business_address,
+                    data.city,
+                    data.state,
+                    data.zip,
                     moment(data.Created_date).format('DD-MM-YYYY')
                 ]);
             });
@@ -403,6 +435,9 @@ class Dashboard extends Component {
                             <th>User Type</th>
                             <th>Full Name</th>
                             <th>Email</th>
+                            <th>City</th>
+                            <th>State</th>
+                            <th>Zip</th>
                             <th>Products Buying</th>
                             <th>Date</th>
                             <th>Options</th>
@@ -416,6 +451,9 @@ class Dashboard extends Component {
                                         <td>{data.user_type == 'affiliated_with_napa_store' ? 'affiliated with a NAPA store' : 'an installer customer'}</td>
                                         <td>{data.name}</td>
                                         <td>{data.email}</td>
+                                        <td>{data.city}</td>
+                                        <td>{data.state}</td>
+                                        <td>{data.zip}</td>
                                         <td>{data.products_buying}</td>
                                         <td>{moment(data.Created_date).format('DD-MM-YYYY')}</td>
                                         <td className={'options'}>
@@ -619,7 +657,7 @@ class Dashboard extends Component {
 
                                             <Row>
                                                 <Col sm={12} md={4}>
-                                                    <span className={'input-label'}>Store address</span>
+                                                    <span className={'input-label'}>Store street</span>
                                                 </Col>
                                                 <Col sm={12} md={8}>
                                                     <FormInput
@@ -676,7 +714,7 @@ class Dashboard extends Component {
 
                                             <Row>
                                                 <Col sm={12} md={4}>
-                                                    <span className={'input-label'}>Business Address</span>
+                                                    <span className={'input-label'}>Business Street</span>
                                                 </Col>
                                                 <Col sm={12} md={8}>
                                                     <FormInput
@@ -703,6 +741,81 @@ class Dashboard extends Component {
                                 }
 
 
+                                <Row>
+                                    <Col sm={12} md={4}>
+                                        <span className={'input-label'}>City</span>
+                                    </Col>
+                                    <Col sm={12} md={8}>
+                                        <FormInput
+                                            className="input-field"
+                                            value={this.state.city}
+                                            onChange={(e) => this.setState({city: e.target.value})}
+                                        />
+                                    </Col>
+                                </Row>
+                                {
+                                    (this.state.formErrors && this.state.formErrors['city']) && (
+                                        <Row>
+                                            <Col sm={12} md={4}></Col>
+                                            <Col sm={12} md={8}>
+                                                <div className={'input-error'}>
+                                                    {this.state.formErrors['city']}
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                    )
+                                }
+
+                                <Row>
+                                    <Col sm={12} md={4}>
+                                        <span className={'input-label'}>State</span>
+                                    </Col>
+                                    <Col sm={12} md={8}>
+                                        <FormInput
+                                            className="input-field"
+                                            value={this.state.stateName}
+                                            onChange={(e) => this.setState({stateName: e.target.value})}
+                                        />
+                                    </Col>
+                                </Row>
+                                {
+                                    (this.state.formErrors && this.state.formErrors['state']) && (
+                                        <Row>
+                                            <Col sm={12} md={4}></Col>
+                                            <Col sm={12} md={8}>
+                                                <div className={'input-error'}>
+                                                    {this.state.formErrors['state']}
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                    )
+                                }
+
+
+                                <Row>
+                                    <Col sm={12} md={4}>
+                                        <span className={'input-label'}>Zip</span>
+                                    </Col>
+                                    <Col sm={12} md={8}>
+                                        <FormInput
+                                            className="input-field"
+                                            value={this.state.zip}
+                                            onChange={(e) => this.setState({zip: e.target.value})}
+                                        />
+                                    </Col>
+                                </Row>
+                                {
+                                    (this.state.formErrors && this.state.formErrors['zip']) && (
+                                        <Row>
+                                            <Col sm={12} md={4}></Col>
+                                            <Col sm={12} md={8}>
+                                                <div className={'input-error'}>
+                                                    {this.state.formErrors['zip']}
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                    )
+                                }
                             </Container>
 
 
@@ -720,7 +833,7 @@ class Dashboard extends Component {
                                         <FormCheckbox
                                             checked={this.state.napaNewElectrical}
                                             onChange={e => {
-                                                this.handleProductChange(e,'napaNewElectrical');
+                                                this.handleProductChange(e, 'napaNewElectrical');
                                             }}
                                         >
                                             {napaProducts.napaNewElectrical}
@@ -730,7 +843,7 @@ class Dashboard extends Component {
                                         <FormCheckbox
                                             checked={this.state.wilson}
                                             onChange={e => {
-                                                this.handleProductChange(e,'wilson');
+                                                this.handleProductChange(e, 'wilson');
                                             }}
                                         >
                                             {napaProducts.wilson}
@@ -743,7 +856,7 @@ class Dashboard extends Component {
                                         <FormCheckbox
                                             checked={this.state.premiumPlus}
                                             onChange={e => {
-                                                this.handleProductChange(e,'premiumPlus');
+                                                this.handleProductChange(e, 'premiumPlus');
                                             }}
                                         >
                                             {napaProducts.premiumPlus}
@@ -753,7 +866,7 @@ class Dashboard extends Component {
                                         <FormCheckbox
                                             checked={this.state.premiumSteering}
                                             onChange={e => {
-                                                this.handleProductChange(e,'premiumSteering');
+                                                this.handleProductChange(e, 'premiumSteering');
                                             }}
                                         >
                                             {napaProducts.premiumSteering}
@@ -766,7 +879,7 @@ class Dashboard extends Component {
                                         <FormCheckbox
                                             checked={this.state.powerSupport}
                                             onChange={e => {
-                                                this.handleProductChange(e,'powerSupport');
+                                                this.handleProductChange(e, 'powerSupport');
                                             }}
                                         >
                                             {napaProducts.powerSupport}
@@ -776,7 +889,7 @@ class Dashboard extends Component {
                                         <FormCheckbox
                                             checked={this.state.newSteering}
                                             onChange={e => {
-                                                this.handleProductChange(e,'newSteering');
+                                                this.handleProductChange(e, 'newSteering');
                                             }}
                                         >
                                             {napaProducts.newSteering}
