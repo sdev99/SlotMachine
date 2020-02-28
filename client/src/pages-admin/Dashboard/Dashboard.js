@@ -289,9 +289,9 @@ class Dashboard extends Component {
             businessName: data.business_name,
             businessAddress: data.business_address,
 
-            city: "",
-            stateName: "",
-            zip: "",
+            city: data.city,
+            stateName: data.state,
+            zip: data.zip,
 
             napaNewElectrical: false,
             wilson: false,

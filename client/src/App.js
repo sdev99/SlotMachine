@@ -10,7 +10,6 @@ import {
     CSSTransition,
     TransitionGroup
 } from 'react-transition-group';
-import Home from "./pages/Home/Home";
 import Spin from "./pages/Spin/Spin";
 import Login from "./pages-admin/Login/Login";
 import Dashboard from "./pages-admin/Dashboard/Dashboard";

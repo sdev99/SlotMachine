@@ -173,6 +173,10 @@ class Spin extends Component {
                 seed = this.getSeed();
             }
 
+            if (this.state.screenType === "spinagainlast") {
+                seed = 1;
+            }
+
             var delay = timer + i * 0.5;
             $('#ring' + i)
                 .css('animation', 'back-spin 1s, spin-' + seed + ' ' + (delay) + 's')
