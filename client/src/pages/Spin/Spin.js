@@ -195,17 +195,16 @@ class Spin extends Component {
                 }, 300);
             } else if (this.state.screenType == 'spinagainlast') {
                 this.setState({disableSpin: true, screenType: 'finalscreen'});
-                // setTimeout(() => {
-                //     this.setState({disableSpin:false, isShowForm: true, screenType: 'spin'}, () => {
-                //         this.setUpSlots();
-                //     });
-                // }, 5 * 1000);
+                setTimeout(() => {
+                    this.setState({disableSpin:false, isShowForm: true, screenType: 'spin'}, () => {
+                        this.setUpSlots();
+                    });
+                }, 8 * 1000);
             } else {
                 this.setState({disableSpin: false, screenType: 'spinagain'});
             }
 
         }, maxTimerDelay * 1000);
-
     }
 
     validateEmail(email) {
@@ -397,15 +396,15 @@ class Spin extends Component {
                             style={{opacity: (this.state.screenType == 'finalscreen') ? 1 : 0}}
                         />
 
-                        {
-                            (this.state.screenType == 'finalscreen') && (
-                                <Button className={'start-over-btn'} pill onClick={() => {
-                                    this.setState({disableSpin: false, isShowForm: true, screenType: 'spin'}, () => {
-                                        this.setUpSlots();
-                                    });
-                                }}>Start Over</Button>
-                            )
-                        }
+                        {/*{*/}
+                        {/*    (this.state.screenType == 'finalscreen') && (*/}
+                        {/*        <Button className={'start-over-btn'} pill onClick={() => {*/}
+                        {/*            this.setState({disableSpin: false, isShowForm: true, screenType: 'spin'}, () => {*/}
+                        {/*                this.setUpSlots();*/}
+                        {/*            });*/}
+                        {/*        }}>Start Over</Button>*/}
+                        {/*    )*/}
+                        {/*}*/}
 
 
                         {
@@ -434,7 +433,7 @@ class Spin extends Component {
                                        onEnded={() => {
                                            this.setState({showVideo: false});
                                        }}>
-                                    <source src="videos/sample.mp4" type="video/mp4"/>
+                                    <source src="videos/NAPA.mp4" type="video/mp4"/>
                                 </video>
                             </div>
                         )
